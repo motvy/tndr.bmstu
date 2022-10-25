@@ -1,4 +1,6 @@
 config.py
+test.py
+sender.py
 botdb/
 files/
 __pycache__/

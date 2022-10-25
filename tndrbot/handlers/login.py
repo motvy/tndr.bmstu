@@ -38,7 +38,7 @@ async def cmd_login(message: Message, state: FSMContext):
         print(err)
         await state.clear()
         await lib_ut.error_handling(message, err, lang)
-        raise err
+
 
 @router.message(commands=["code"])
 async def cmd_code(message: Message, state: FSMContext):
@@ -81,10 +81,16 @@ async def login(message, state: FSMContext):
 
         await state.set_state(Login.waiting_code_query)
     except Exception as err:
-        print(err)
-        await state.clear()
-        await lib_ut.error_handling(message, err, lang)
-        raise err
+        if 'Invalid email' in str(err):
+            text = mess.tr(lang, 'invalid_email') + '\n' + mess.tr(lang, 'cancel_command')
+            msg = await message.answer(text)
+            current_msg = {'msg': msg, 'new_text': mess.tr(lang, 'canceled_login')}
+            await state.update_data(api=api, lang=lang, current_msg=current_msg)
+            await state.set_state(Login.waiting_email)
+        else:
+            await state.clear()
+            await lib_ut.error_handling(message, err, lang)
+            raise err
 
 @router.message(Login.waiting_code_query)
 async def code_query(message, state: FSMContext):

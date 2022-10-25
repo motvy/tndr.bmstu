@@ -46,7 +46,7 @@ class AuthApi(AbstractApi):
             self.adb.set_email(email)
             # self.verify(email)
         else:
-            raise Exception(mess.tr(self.lang(), 'invalid_email'))
+            raise Exception('Invalid email')
 
     def verify(self):
         
@@ -121,12 +121,12 @@ class UserApi(AbstractApi):
             age = ut.get_age(profile['date_of_birth'])
             about = profile['about_user']
             photo_id = profile['photo_id']
-            tags = profile['tags']
+            tags = [mess.tr(self.lang(), tag) for tag in profile['tags'].split(' • ')] if profile['tags'] else None
 
             text = name if name else mess.tr(self.lang(), 'without_name')
             text += f', {age}\n' if age else '\n'
             text += f'\n{about}' if about else ''
-            text += '\n\n' + tags if tags else ''
+            text += '\n\n' + ' • '.join(tags) if tags else ''
 
             info = {
                 'text': text.replace('None', mess.tr(self.lang(), 'none_info')),
@@ -143,9 +143,10 @@ class UserApi(AbstractApi):
             name = profile['name'] if profile['name'] else mess.tr(self.lang(), 'none_info')
             date = profile['date_of_birth'] if profile['date_of_birth'] else mess.tr(self.lang(), 'none_info')
             about = profile['about_user'] if profile['about_user'] else mess.tr(self.lang(), 'none_info')
-            gender = 'Парень' if profile['gender'] == 1 else 'Девушка' if profile['gender'] == 2 else mess.tr(self.lang(), 'none_info')
+            gender = mess.tr(self.lang(), 'men_select') if profile['gender'] == 1 else mess.tr(self.lang(), 'women_select') if profile['gender'] == 2 else mess.tr(self.lang(), 'none_info')
             photo_id = profile['photo_id']
-            tags = profile['tags'] if profile['tags']  else mess.tr(self.lang(), 'none_info')
+            tags = [mess.tr(self.lang(), tag) for tag in profile['tags'].split(' • ')] if profile['tags'] else None
+            tags = ' • '.join(tags) if tags else mess.tr(self.lang(), 'none_info')
             vk_link = profile['vk_link'] if profile['vk_link'] else mess.tr(self.lang(), 'none_info')
             study_group = profile['study_group'] if profile['study_group'] else mess.tr(self.lang(), 'none_info')
 

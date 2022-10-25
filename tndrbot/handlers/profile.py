@@ -57,14 +57,14 @@ async def cmd_profile(message: Message, state: FSMContext):
         # builder = InlineKeyboardBuilder()
         buttons = [
             [types.InlineKeyboardButton(text=mess.tr(lang, 'name'), callback_data="name_callback"),
-            types.InlineKeyboardButton(text='Возраст', callback_data="age_callback")],
-            [types.InlineKeyboardButton(text='Фото', callback_data="photo_callback"),
+            types.InlineKeyboardButton(text=mess.tr(lang, 'age'), callback_data="age_callback")],
+            [types.InlineKeyboardButton(text=mess.tr(lang, 'photo'), callback_data="photo_callback"),
             types.InlineKeyboardButton(text=mess.tr(lang, 'gender'), callback_data="gender_callback")],
-            [types.InlineKeyboardButton(text='О себе', callback_data="about_callback"),
-            types.InlineKeyboardButton(text='Интересы', callback_data="tags_callback")],
-            [types.InlineKeyboardButton(text='Группа', callback_data="study_group_callback"),
-            types.InlineKeyboardButton(text='Ссылка на вк', callback_data="vk_link_callback")],
-            [types.InlineKeyboardButton(text='Как мой профиль видят другие', callback_data="view_callback")],
+            [types.InlineKeyboardButton(text=mess.tr(lang, 'about'), callback_data="about_callback"),
+            types.InlineKeyboardButton(text=mess.tr(lang, 'tags'), callback_data="tags_callback")],
+            [types.InlineKeyboardButton(text=mess.tr(lang, 'group'), callback_data="study_group_callback"),
+            types.InlineKeyboardButton(text=mess.tr(lang, 'vk_link'), callback_data="vk_link_callback")],
+            [types.InlineKeyboardButton(text=mess.tr(lang, 'view'), callback_data="view_callback")],
         ]
 
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -239,8 +239,8 @@ async def tags_callback(callback: types.CallbackQuery, state: FSMContext):
         [types.InlineKeyboardButton(text=mess.tr(lang, 'finance'), callback_data="chose_tags_callback_finance"),
         types.InlineKeyboardButton(text=mess.tr(lang, 'medicine'), callback_data="chose_tags_callback_medicine"),
         types.InlineKeyboardButton(text=mess.tr(lang, 'history'), callback_data="chose_tags_callback_history")],
-        [types.InlineKeyboardButton(text='Очистить', callback_data="tags_callback"),
-        types.InlineKeyboardButton(text='Сохранить', callback_data="end_callback")],
+        [types.InlineKeyboardButton(text=mess.tr(lang, 'clear'), callback_data="tags_callback"),
+        types.InlineKeyboardButton(text=mess.tr(lang, 'save'), callback_data="end_callback")],
     ]
 
     tags_keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -269,7 +269,7 @@ async def chose_tags_callback(callback: types.CallbackQuery, state: FSMContext):
 
         current_reply_markup = current_msg.reply_markup
 
-        new_tag = mess.tr(lang, callback.data.split('chose_tags_callback_')[-1])
+        new_tag = callback.data.split('chose_tags_callback_')[-1]
         tags.append(new_tag)
 
         await callback.answer()
@@ -280,7 +280,8 @@ async def chose_tags_callback(callback: types.CallbackQuery, state: FSMContext):
                     el_list.remove(el)
                     break
         
-        text = ' • '.join(tags) + '\n' + mess.tr(lang, 'cancel_command')
+        tr_tags = [mess.tr(lang, t) for t in tags]
+        text = ' • '.join(tr_tags) + '\n' + mess.tr(lang, 'cancel_command')
         await current_msg.edit_text(text, reply_markup=current_reply_markup)
 
         await state.update_data(api=api, lang=lang, current_msg=user_data['current_msg'], profile_msg=profile_msg, reply_markup=keyboard, caption=caption, tags=tags)
@@ -407,6 +408,13 @@ async def view_callback(callback: types.CallbackQuery, state: FSMContext):
         profile_msg = user_data['profile_msg']
         keyboard = user_data['reply_markup']
         caption = user_data['caption']
+
+        if 'current_msg' in user_data:
+            current_msg = user_data['current_msg']['msg']
+            try:
+                await current_msg.delete()
+            except Exception as err:
+                print(err)
 
         profile_info = api.get_short_profile()
 
