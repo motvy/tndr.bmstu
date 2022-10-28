@@ -226,8 +226,8 @@ Your profile will be also deleted''',
         2: 'Расскажи немного о себе',
     },
     'incorrect_about': {
-        1: 'Tell about yourself from 100 to 500 symbols',
-        2: 'Расскажи о себе от 100 до 500 символов',
+        1: 'Tell about yourself from 100 to 500 symbols (you entered {})',
+        2: 'Расскажи о себе от 100 до 500 символов (ты ввел {})',
     },
     'cancelled_about': {
         1: 'Profile information input canceled',
@@ -252,6 +252,14 @@ Your profile will be also deleted''',
     'incorrect_vk_link': {
         1: 'Enter corrcet vk link in https://vk.com/username format',
         2: 'Отправь корректную ссылку на свою страницу вк в формате https://vk.com/username',
+    },
+    'not_unique_vk_link': {
+        1: '''Someone has already specified {} as their.
+If this is your page, please [contact support]({}).
+Or enter corrcet vk link in https://vk.com/username format''',
+        2: '''Кто-то уже укаказал {} как свою.
+Если это твоя страница, пожалуйста, свяжись со [службой поддержки]({}).
+Или отправь корректную ссылку на свою страницу вк в формате https://vk.com/username''',
     },
     'ask_tags': {
         1: 'Chose from the list',
@@ -401,6 +409,24 @@ Your profile will be also deleted''',
         1: 'Save',
         2: 'Сохранить',
     },
-    
-
+    'no': {
+        1: 'No',
+        2: 'Нет',
+    },
+    'no_vk': {
+        1: "I don't have vk page",
+        2: 'У меня нет страницы вк'
+    },
+    'not_full_profile': {
+        1: 'To start swapping, you need to fill out the profile completely',
+        2: 'Чтобы начать свапать, необходимо полностью заполнить профиль',
+    },
+    'go_swipe': {
+        1: 'Use button to go to the main application.\n\nP.S. ou can always come back to set up your profile',
+        2: 'Используйте кнопку для перехода в основное приложение.\n\nP.S. Ты всегда можешь вернуться для настройки своего профиля',
+    },
+    'swipe_btn': {
+        1: 'Go swipe',
+        2: 'Свайпать',
+    },
 }

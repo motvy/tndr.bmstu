@@ -106,6 +106,16 @@ def profile_turple_to_dict(user_turple):
         }
     return user_dict
 
+def is_full_profile(profile):
+    if profile is None:
+        return False
+    else:
+        for key in profile:
+            if profile[key] is None or profile[key] == '':
+                return False
+
+        return True
+
 def get_age(birth_date: str): # format: DD.MM.YYYY
     if not birth_date:
         return None

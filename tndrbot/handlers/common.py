@@ -11,6 +11,7 @@ from tndrlib import messages as mess
 from tndrlib import authapi as botapi
 from tndrlib import utils as lib_ut
 from tndrbot import utils as bot_ut
+from tndrbot import config
 
 
 router = Router()
@@ -120,3 +121,26 @@ async def delete_account(callback: types.CallbackQuery):
         await callback.message.edit_text(text=text, reply_markup=None)
     except Exception as err:
         await lib_ut.error_handling(callback.message, err, lang, edit_flag=True)
+
+@router.message(Command(commands=["swipe"]))
+async def cmd_about(message: Message, state: FSMContext):
+    lang = bot_ut.default_lang(message)
+    try:
+        await bot_ut.check_state(state)
+        api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
+
+        if api.is_full_profile():
+            builder = InlineKeyboardBuilder()
+            builder.add(
+                types.InlineKeyboardButton(
+                    text=mess.tr(lang, 'swipe_btn'),
+                    url=config.swipe_bot_link,
+                )
+            )
+
+            message = await message.answer(text=mess.tr(lang, 'go_swipe'), parse_mode='markdown', disable_web_page_preview=True, reply_markup=builder.as_markup())
+        else:
+            await message.answer(text=mess.tr(lang, 'not_full_profile'))
+    except Exception as err:
+        await lib_ut.error_handling(message, err, lang)

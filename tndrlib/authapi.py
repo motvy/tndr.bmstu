@@ -148,6 +148,7 @@ class UserApi(AbstractApi):
             tags = [mess.tr(self.lang(), tag) for tag in profile['tags'].split(' • ')] if profile['tags'] else None
             tags = ' • '.join(tags) if tags else mess.tr(self.lang(), 'none_info')
             vk_link = profile['vk_link'] if profile['vk_link'] else mess.tr(self.lang(), 'none_info')
+            vk_link = mess.tr(self.lang(), 'no') if vk_link == 'no' else vk_link
             study_group = profile['study_group'] if profile['study_group'] else mess.tr(self.lang(), 'none_info')
 
             text += mess.tr(self.lang(), 'name_info', name) + '\n'
@@ -182,16 +183,17 @@ class UserApi(AbstractApi):
     
     def set_about(self, about):
         if not ut.check_about(about):
-            raise Exception('Incorrect about')
+            raise Exception(f'Incorrect about;{len(about)}')
         self.adb.set_about(about)
     
     def set_gender(self, gender_flag):
         self.adb.set_gender(gender_flag)
 
     def set_vk_link(self, vk_link):
-        vk_link = ut.check_vk_link(vk_link)
-        if vk_link is None:
-            raise Exception('Incorrect vk link')
+        if vk_link != 'no':
+            vk_link = ut.check_vk_link(vk_link)
+            if vk_link is None:
+                raise Exception('Incorrect vk link')
         self.adb.set_vk_link(vk_link)
 
     def set_study_group(self, study_group):
@@ -199,7 +201,11 @@ class UserApi(AbstractApi):
         if not flag:
             raise Exception('Incorrect study group')
         self.adb.set_study_group(study_group.upper())
-    
+
     def set_tags(self, tags):
         self.adb.set_tags(tags)
+
+    def is_full_profile(self):
+        profile = self.adb.get_user()
+        return ut.is_full_profile(profile)
     

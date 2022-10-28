@@ -339,10 +339,46 @@ async def vk_link_callback(callback: types.CallbackQuery, state: FSMContext):
             print(err)
 
     text = mess.tr(lang, 'ask_vk_link') + '\n' + mess.tr(lang, 'cancel_command')
-    message = await callback.message.answer(text)
+
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        types.InlineKeyboardButton(
+            text=mess.tr(lang, 'no_vk'),
+            callback_data="no_vk_callback",
+        )
+    )
+
+    message = await callback.message.answer(text, reply_markup=builder.as_markup())
 
     await state.update_data(api=api, lang=lang, current_msg={'msg': message, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
     await state.set_state(Profile.waiting_vk_link)
+
+@router.callback_query(Text(text_startswith="no_vk_callback"))
+async def no_vk_callback(callback: types.CallbackQuery, state: FSMContext):
+    try:
+        user_data = await state.get_data()
+        api = user_data['api']
+        lang = user_data['lang']
+        profile_msg = user_data['profile_msg']
+        keyboard = user_data['reply_markup']
+
+        api.set_vk_link('no')
+
+        try:
+            await callback.message.delete()
+        except Exception as err:
+            print(err)
+
+        new_caption = api.get_full_profile()['text']
+        await profile_msg.edit_caption(caption=new_caption, reply_markup=keyboard, parse_mode='markdown')
+        await state.clear()
+        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+    except Exception as err:
+        await state.clear()
+        if 'message is not modified' in str(err):
+            await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+        else:
+            await lib_ut.error_handling(callback.message, err, lang)
 
 @router.callback_query(Text(text_startswith="chose_callback_"))
 async def chose_callback(callback: types.CallbackQuery, state: FSMContext):
@@ -596,7 +632,7 @@ async def set_about(message, state: FSMContext):
         caption = user_data['caption']
 
         about = message.text.strip()
-        text = mess.tr(lang, 'incorrect_about') if 'after_error' in user_data else mess.tr(lang, 'ask_about')
+        text = mess.tr(lang, 'incorrect_about', '') if 'after_error' in user_data else mess.tr(lang, 'ask_about')
         await current_msg.edit_text(text=text)
         api.set_about(about)
     
@@ -618,7 +654,8 @@ async def set_about(message, state: FSMContext):
                 await message.delete()
             except Exception as err:
                 print(err)
-            text = mess.tr(lang, 'incorrect_about') + '\n' + mess.tr(lang, 'cancel_command')
+            len_about = str(err).split(';')[-1]
+            text = mess.tr(lang, 'incorrect_about', len_about) + '\n' + mess.tr(lang, 'cancel_command')
             message = await message.answer(text)
             await state.update_data(after_error=True, api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
             await state.set_state(Profile.waiting_about)
@@ -667,9 +704,37 @@ async def set_vk_link(message, state: FSMContext):
                 print(err)
 
             text = mess.tr(lang, 'incorrect_vk_link') + '\n' + mess.tr(lang, 'cancel_command')
-            message = await message.answer(text)
+            builder = InlineKeyboardBuilder()
+            builder.add(
+                types.InlineKeyboardButton(
+                    text=mess.tr(lang, 'no_vk'),
+                    callback_data="no_vk_callback",
+                )
+            )
+
+            message = await message.answer(text, reply_markup=builder.as_markup())
+
             await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
-            await state.set_state(Profile.waiting_vk_link)            
+            await state.set_state(Profile.waiting_vk_link)   
+        elif 'UNIQUE constraint failed: profiles.vk_link':
+            try:
+                await current_msg.delete()
+                await message.delete()
+            except Exception as err:
+                print(err)
+
+            text = mess.tr(lang, 'not_unique_vk_link', vk_link, config.contact_support) + '\n' + mess.tr(lang, 'cancel_command')
+            builder = InlineKeyboardBuilder()
+            builder.add(
+                types.InlineKeyboardButton(
+                    text=mess.tr(lang, 'no_vk'),
+                    callback_data="no_vk_callback",
+                )
+            )
+
+            message = await message.answer(text, parse_mode='markdown', disable_web_page_preview=True, reply_markup=builder.as_markup())
+            await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            await state.set_state(Profile.waiting_vk_link)                        
         elif 'message is not modified' not in str(err):
             await lib_ut.error_handling(message, err, lang)
 
