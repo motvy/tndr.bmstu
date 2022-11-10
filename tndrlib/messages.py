@@ -418,8 +418,8 @@ Or enter corrcet vk link in https://vk.com/username format''',
         2: 'У меня нет страницы вк'
     },
     'not_full_profile': {
-        1: 'To start swapping, you need to fill out the profile completely',
-        2: 'Чтобы начать свапать, необходимо полностью заполнить профиль',
+        1: 'To start swapping, you need to fill out the profile completely with command /profile',
+        2: 'Чтобы начать свапать, необходимо полностью заполнить профиль при помощи команды /profile',
     },
     'go_swipe': {
         1: 'Use button to go to the main application.\n\nP.S. ou can always come back to set up your profile',

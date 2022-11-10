@@ -1,5 +1,6 @@
 config.py
 test.py
+test_map.py
 sender.py
 botdb/
 files/

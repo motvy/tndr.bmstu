@@ -9,6 +9,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from tndrlib import messages as mess
 from tndrlib import authapi as botapi
+from tndrlib import meetapi
 from tndrlib import utils as lib_ut
 from tndrbot import utils as bot_ut
 from tndrbot import config
@@ -129,6 +130,10 @@ async def cmd_about(message: Message, state: FSMContext):
         await bot_ut.check_state(state)
         api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
         lang = api.lang()
+
+        mapi = meetapi.ScheduleApi(message.from_user.id)
+        free = mapi.get_free_time()
+        lib_ut.joint_time(free, free)
 
         if api.is_full_profile():
             builder = InlineKeyboardBuilder()

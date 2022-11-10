@@ -14,6 +14,8 @@ from tndrlib import messages as mess
 
 router = Router()
 
+
+
 class Login(StatesGroup):
     waiting_email = State()
     waiting_code_query = State()
@@ -44,20 +46,30 @@ async def cmd_login(message: Message, state: FSMContext):
 async def cmd_code(message: Message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
+        msg = None
         await bot_ut.check_state(state)
         api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
         lang = api.lang()
 
-        email = api.verify()
+        email = api.has_email()
+        if not email:
+            raise Exception(mess.tr(lang, 'question_code_invalid'))
+
         text = mess.tr(lang, 'waiting_code_query', email)
         msg = await message.answer(text)
+
+        api.verify()
+
         current_msg = {'msg': msg, 'new_text': mess.tr(lang, 'canceled_login')}
         await state.update_data(api=api, lang=lang, current_msg=current_msg)
         await state.set_state(Login.waiting_code_query)
 
     except Exception as err:
         await state.clear()
-        await lib_ut.error_handling(message, err, lang)
+        if msg is None:
+            await lib_ut.error_handling(message, err, lang)
+        else:
+            await lib_ut.error_handling(msg, err, lang, edit_flag=True)
 
 
 @router.message(Login.waiting_email)

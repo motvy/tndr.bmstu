@@ -2,8 +2,6 @@
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from tabnanny import check
-from unittest.mock import NonCallableMagicMock
 
 from . import botdb
 from . import authdb
@@ -47,6 +45,11 @@ class AuthApi(AbstractApi):
             # self.verify(email)
         else:
             raise Exception('Invalid email')
+
+    def has_email(self):
+        email = self.adb.get_email()
+        return email
+            # raise Exception(mess.tr(self.lang(), 'question_code_invalid'))        
 
     def verify(self):
         
@@ -206,6 +209,6 @@ class UserApi(AbstractApi):
         self.adb.set_tags(tags)
 
     def is_full_profile(self):
-        profile = self.adb.get_user()
+        profile = self.adb.get_profile()
         return ut.is_full_profile(profile)
     

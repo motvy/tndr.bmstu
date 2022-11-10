@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from tndrbot import utils as ut
+from tndrbot.config import schedule_setting as schedule
 
 from datetime import date
-
 import re
+import json
 
 bmstu_faculty = {
     'ак': ('1', '2', '3', '4'),
@@ -54,27 +55,43 @@ def check_vk_link(vk_link):
 
 def check_study_group(study_group):
     study_group = study_group.lower()
-    match = re.match(r'^([^\W\d_]+)(\d*)-(\d{2})([^\W\d_]*)$', study_group)
-    if not match:
-        return False
+    groups_path = schedule['groups_path']
 
-    faculty = match.group(1)
-    faculty_num = match.group(2)
-    group = match.group(3)
-    degree = match.group(4)
-    correct_flag = False
-    if faculty in bmstu_faculty and degree in bmstu_degree and faculty_num in bmstu_faculty[faculty]:
-        sem = int(group[0])
-        group_num = int(group[1])
-        month_today = date.today().month
-        if 2 <= month_today <= 7:
-            if sem > 0 and sem % 2 == 0 and group_num > 0:
-                correct_flag = True
-        else:
-            if sem > 0 and sem % 2 == 1 and group_num > 0:
-                correct_flag = True
+    with open(groups_path) as f:
+        groups_str = f.read()
+        
+    groups_json = json.loads(groups_str)
+
+    for faculty in groups_json:
+        for group in groups_json[faculty]:
+            if group.lower() == study_group:
+                return True
+
+    return False
+
+
+
+    # match = re.match(r'^([^\W\d_]+)(\d*)-(\d{2})([^\W\d_]*)$', study_group)
+    # if not match:
+    #     return False
+
+    # faculty = match.group(1)
+    # faculty_num = match.group(2)
+    # group = match.group(3)
+    # degree = match.group(4)
+    # correct_flag = False
+    # if faculty in bmstu_faculty and degree in bmstu_degree and faculty_num in bmstu_faculty[faculty]:
+    #     sem = int(group[0])
+    #     group_num = int(group[1])
+    #     month_today = date.today().month
+    #     if 2 <= month_today <= 7:
+    #         if sem > 0 and sem % 2 == 0 and group_num > 0:
+    #             correct_flag = True
+    #     else:
+    #         if sem > 0 and sem % 2 == 1 and group_num > 0:
+    #             correct_flag = True
     
-    return correct_flag
+    # return correct_flag
 
 
 def user_turple_to_dict(user_turple):
@@ -90,7 +107,7 @@ def user_turple_to_dict(user_turple):
         }
     return user_dict
 
-def profile_turple_to_dict(user_turple):
+def profile_turple_to_dict(user_turple, group_name):
     if user_turple is None or len(user_turple) == 0:
         user_dict = None
     else:
@@ -101,7 +118,7 @@ def profile_turple_to_dict(user_turple):
             'gender': user_turple[5],
             'about_user': user_turple[6],
             'tags': user_turple[7],
-            'study_group': user_turple[8],
+            'study_group': group_name,
             'vk_link': user_turple[9],
         }
     return user_dict
@@ -134,3 +151,30 @@ def get_age(birth_date: str): # format: DD.MM.YYYY
             return None
     except Exception:
         return None
+
+def get_free_time(schedule):
+    free_time = {}
+    for day in schedule:
+        free_time[day] = {'numerator': [], 'denominator': []}
+        for time in schedule[day]:
+            if schedule[day][time]['numerator'] == '':
+                free_time[day]['numerator'].append(time)
+            if schedule[day][time]['denominator'] == '':
+                free_time[day]['denominator'].append(time) 
+
+    return free_time
+
+def joint_time(free_time_1, free_time_2):
+    joint_time = {}
+    for day in free_time_1:
+        joint_time[day] = {
+            'numerator': set(free_time_1[day]['numerator']) & set(free_time_2[day]['numerator']),
+            'denominator': set(free_time_1[day]['denominator']) & set(free_time_2[day]['denominator']),
+        }
+
+    print(joint_time)
+    return joint_time
+
+            
+
+

@@ -2,6 +2,8 @@
 
 from tndrbot import config
 from tndrlib import utils as ut
+from tndrlib import createdb
+
 
 import os
 import sqlite3
@@ -28,50 +30,7 @@ class AuthDb():
         else:
             print('Create bot db', db_path)
 
-            self.conn = sqlite3.connect(db_path)
-            self.cursor = self.conn.cursor()
-
-            self.cursor.execute('''CREATE TABLE users (
-                                    id INTEGER PRIMARY KEY AUTOINCREMENT 
-                                    , flags INTEGER NOT NULL DEFAULT 1
-                                    /*
-                                        Bits:
-                                        0 - deleted user
-                                        1 - wait confirm										
-                                        2 - active user													
-                                    */
-                                    , user_id TEXT NOT NULL								
-                                    , lang INTEGER NOT NULL DEFAULT 2
-                                    /*
-                                        Language:
-                                            1 - ru
-                                            2 - en
-                                    */
-                                    , email TEXT
-                                    , code TEXT
-                                    , UNIQUE (user_id)								
-                                    )''')
-            
-            self.cursor.execute('''CREATE TABLE profiles (
-                                    id INTEGER PRIMARY KEY AUTOINCREMENT 
-                                    , auth_id INTEGER NOT NULL								
-                                    , name TEXT
-                                    , date_of_birth TEXT
-                                    , photo_id TEXT
-                                    , gender INTEGER
-                                    /*
-                                        Bits:
-                                        0 - search girl
-                                        1 - search boy													
-                                    */
-                                    , about_user TEXT
-                                    , tags TEXT
-                                    , study_group TEXT
-                                    , vk_link TEXT
-                                    , UNIQUE (auth_id)
-                                    , UNIQUE (vk_link)
-                                    , FOREIGN KEY (auth_id) REFERENCES users(id)								
-                                    )''')
+            self.conn, self.cursor = createdb.create_db()
 
 
     def confirmed_user(self):
@@ -88,8 +47,18 @@ class AuthDb():
     def get_profile(self):
         self.cursor.execute("select p.* from profiles p, users u where p.auth_id=u.id and u.user_id='{}'".format(self.user_id))
         info = self.cursor.fetchone()
-        return ut.profile_turple_to_dict(info)
 
+        group_id = info[8]
+        self.cursor.execute("select g.group_name from groups g where g.id='{}'".format(group_id))
+        group_name = self.cursor.fetchone()
+        group_name = group_name[0] if group_name else None
+
+        return ut.profile_turple_to_dict(info, group_name)
+    
+    def get_group_id(self, group):
+        group = group.upper()
+        self.cursor.execute("select g.id from groups g where g.group_name='{}'".format(group))
+        return self.cursor.fetchone()[0]
 
     def set_email(self, email):
         if self.get_user() is None:
@@ -98,7 +67,6 @@ class AuthDb():
 
             self.cursor.execute("select id from users where user_id='{}'".format(self.user_id))
             id = self.cursor.fetchone()[0]
-            print("!!!!!!!!!!!!", id)
             self.cursor.execute("insert into profiles (auth_id) values (?)", (id,))
         else:
             self.cursor.execute("update users set email='{}', flags=1 where user_id={}".format(email, self.user_id))
@@ -178,9 +146,15 @@ class AuthDb():
         self.conn.commit()
 
     def set_study_group(self, study_group):
-        self.cursor.execute("update profiles set study_group='{}' from users where users.user_id={} and profiles.auth_id=users.id".format(study_group, self.user_id))
+        group_id = self.get_group_id(study_group)
+        self.cursor.execute("update profiles set group_id='{}' from users where users.user_id={} and profiles.auth_id=users.id".format(group_id, self.user_id))
         self.conn.commit()
 
     def set_tags(self, tags):
         self.cursor.execute("update profiles set tags='{}' from users where users.user_id={} and profiles.auth_id=users.id".format(tags, self.user_id))
         self.conn.commit()
+
+    def get_free_time(self):
+        self.cursor.execute("select g.free_time from groups g, profiles p, users u where u.user_id={} and u.id=p.auth_id and p.group_id=g.id".format(self.user_id))
+        info = self.cursor.fetchone()[0]
+        return info
