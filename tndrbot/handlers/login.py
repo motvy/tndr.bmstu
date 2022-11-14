@@ -125,6 +125,7 @@ async def code_query(message, state: FSMContext):
 async def cmd_delete(message: Message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
+        await bot_ut.check_state(state)
         api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
         lang = api.lang()
 
