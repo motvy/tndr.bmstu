@@ -140,7 +140,7 @@ async def cmd_swipe(message: Message, state: FSMContext):
             builder.add(
                 types.InlineKeyboardButton(
                     text=mess.tr(lang, 'swipe_btn'),
-                    url=config.schedule_setting['swipe_bot_link'],
+                    url=config.chat_settings['swipe_bot_link'],
                 )
             )
 
