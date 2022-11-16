@@ -8,7 +8,7 @@ from . import authdb
 from . import utils as ut
 from . import messages as mess
 
-from tndrbot import config
+import config
 
 from threading import Timer
 import smtplib
@@ -40,7 +40,6 @@ class AuthApi(AbstractApi):
     def login(self, email):
         email = ut.check_bmstu_email(email)
         if email:
-            print("[INFO AuthApi.login] correct email")
             self.adb.set_email(email)
             # self.verify(email)
         else:
@@ -62,17 +61,20 @@ class AuthApi(AbstractApi):
         smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
         smtpObj.starttls()
 
-        smtpObj.login(config.bot_login, config.bot_password)
+        login = config.settings_bot_settings['bot_login']
+        password = config.settings_bot_settings['bot_password']
+
+        smtpObj.login(login, password)
 
         message = MIMEMultipart("alternative")
         message["Subject"] = "Код подтверждения BMSTU.TNDR"
-        message["From"] = config.bot_login
+        message["From"] = login
         message["To"] = email
         email_html = mess.tr(self.lang(), 'email_html_text', self.user_name, str(code))
         text = MIMEText(email_html, "html")
         message.attach(text)
 
-        smtpObj.sendmail(config.bot_login, email, message.as_string())
+        smtpObj.sendmail(login, email, message.as_string())
 
         return email
 
@@ -89,7 +91,6 @@ class AuthApi(AbstractApi):
 
     def confirm(self, code):
         correct_code = self.adb.get_code_query()
-        print("[INFO AuthApi.confirm] Correct code:", correct_code)
         if not correct_code:
             raise Exception("Exception in confirm")
         if correct_code != str(code):

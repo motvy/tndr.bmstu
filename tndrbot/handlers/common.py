@@ -12,7 +12,7 @@ from tndrlib import authapi as botapi
 from tndrlib import meetapi
 from tndrlib import utils as lib_ut
 from tndrbot import utils as bot_ut
-from tndrbot import config
+import config
 
 
 router = Router()
@@ -124,7 +124,7 @@ async def delete_account(callback: types.CallbackQuery):
         await lib_ut.error_handling(callback.message, err, lang, edit_flag=True)
 
 @router.message(Command(commands=["swipe"]))
-async def cmd_about(message: Message, state: FSMContext):
+async def cmd_swipe(message: Message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         await bot_ut.check_state(state)
@@ -140,12 +140,27 @@ async def cmd_about(message: Message, state: FSMContext):
             builder.add(
                 types.InlineKeyboardButton(
                     text=mess.tr(lang, 'swipe_btn'),
-                    url=config.swipe_bot_link,
+                    url=config.schedule_setting['swipe_bot_link'],
                 )
             )
 
             message = await message.answer(text=mess.tr(lang, 'go_swipe'), parse_mode='markdown', disable_web_page_preview=True, reply_markup=builder.as_markup())
         else:
             await message.answer(text=mess.tr(lang, 'not_full_profile'))
+    except Exception as err:
+        await lib_ut.error_handling(message, err, lang)
+
+
+@router.message(Command(commands=["admin"]))
+async def cmd_admin(message: Message, state: FSMContext):
+    print(message.from_user.id)
+    if str(message.from_user.id) not in config.admin_settings['admins_id']:
+        return
+
+    lang = bot_ut.default_lang(message)
+    try:
+        lang = 2
+
+        await message.answer()
     except Exception as err:
         await lib_ut.error_handling(message, err, lang)

@@ -11,22 +11,27 @@ from aiogram import Bot, Dispatcher
 import config
 from handlers import common, login, profile
 
+from tndrlib import common as log
+
 
 # Запуск бота
 async def main():
-    bot = Bot(token=config.TOKEN)
+    bot = Bot(token=config.settings_bot_settings['TOKEN'])
     dp = Dispatcher()
 
+    log.log_init('main')
+    log.log_info('Connect log')
+
     dp.include_router(common.router)
-    print("[INFO] load common")
+    log.log_info('Load common')
     dp.include_router(login.router)
-    print("[INFO] load login")
+    log.log_info('Load login')
     dp.include_router(profile.router)
-    print("[INFO] load profile")
+    log.log_info('Load profile')
 
     # Запускаем бота и пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)
-    print("[INFO] start bot")
+    log.log_info('Start bot')
     await dp.start_polling(bot)
 
 

@@ -1,4 +1,3 @@
-# from distutils.command.config import config
 import os
 
 from aiogram import Router
@@ -20,10 +19,10 @@ from tndrlib import utils as lib_ut
 from tndrbot import utils as bot_ut
 from tndrlib import messages as mess
 
-from tndrbot import config
+import config
 
 router = Router()
-bot = Bot(token=config.TOKEN)
+bot = Bot(token=config.settings_bot_settings['TOKEN'])
 
 class Profile(StatesGroup):
     waiting_name = State()
@@ -45,14 +44,15 @@ async def cmd_profile(message: Message, state: FSMContext):
         lang = api.lang()
 
         profile_info = api.get_full_profile()
+        no_avatar_path = config.store_settings['no_avatar_path']
 
         if profile_info:
             text = profile_info['text']
             photo_id = profile_info['photo_id']
-            photo = photo_id if photo_id else FSInputFile(config.no_avatar_path)
+            photo = photo_id if photo_id else FSInputFile(no_avatar_path)
         else:
             text = mess.tr(lang, 'profile_empty')
-            photo = FSInputFile(config.no_avatar_path)
+            photo = FSInputFile(no_avatar_path)
 
         # builder = InlineKeyboardBuilder()
         buttons = [
@@ -454,13 +454,15 @@ async def view_callback(callback: types.CallbackQuery, state: FSMContext):
 
         profile_info = api.get_short_profile()
 
+        no_avatar_path = config.store_settings['no_avatar_path']
+
         if profile_info:
             text = profile_info['text']
             photo_id = profile_info['photo_id']
-            photo = photo_id if photo_id else FSInputFile(config.no_avatar_path)
+            photo = photo_id if photo_id else FSInputFile(no_avatar_path)
         else:
             text = mess.tr(lang, 'profile_empty')
-            photo = FSInputFile(config.no_avatar_path)
+            photo = FSInputFile(no_avatar_path)
         
         await callback.answer()
         message = await callback.message.answer_photo(
@@ -596,7 +598,7 @@ async def set_photo(message, state: FSMContext):
     
         file = await bot.get_file(photo_id) # Get file path
 
-        await bot.download_file(file.file_path, config.file_store_path.format(photo_id))
+        await bot.download_file(file.file_path, config.store_settings['file_store_path'].format(photo_id))
 
         await edit_message_media.EditMessageMedia(media=media_photo, chat_id=message.chat.id, message_id=profile_msg.message_id, reply_markup=keyboard)
         
@@ -723,7 +725,7 @@ async def set_vk_link(message, state: FSMContext):
             except Exception as err:
                 print(err)
 
-            text = mess.tr(lang, 'not_unique_vk_link', vk_link, config.contact_support) + '\n' + mess.tr(lang, 'cancel_command')
+            text = mess.tr(lang, 'not_unique_vk_link', vk_link, config.chat_settings['contact_support']) + '\n' + mess.tr(lang, 'cancel_command')
             builder = InlineKeyboardBuilder()
             builder.add(
                 types.InlineKeyboardButton(

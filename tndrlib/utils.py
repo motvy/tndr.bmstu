@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from tndrbot import utils as ut
-from tndrbot.config import schedule_setting as schedule
+from config import schedule_setting as schedule
+from tndrlib import common as log
 
 from datetime import date
 import re
@@ -34,7 +35,7 @@ bmstu_faculty = {
 bmstu_degree = ('', 'а', 'б', 'бв','м')
 
 async def error_handling(msg, err, lang, edit_flag=False):
-    print("!!!!!!!!!!", err)
+    log.log_error(err)
     await ut.error_handling(msg, err, lang, edit_flag)
 
 def check_bmstu_email(email):
@@ -175,6 +176,20 @@ def joint_time(free_time_1, free_time_2):
     print(joint_time)
     return joint_time
 
-            
+def log_init(logger_name):	
+    logger_file_name = config.log_path + f"/{logger_name}.log.txt"
+    logger = logging.getLogger(logger_name)
+
+    fileHandler = TimedRotatingFileHandler(logger_file_name, when='midnight', interval=1, backupCount=7, encoding = "UTF-8")
+
+    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+    # fileHandler = logging.FileHandler(logger_file_name, mode='w')
+    fileHandler.setFormatter(formatter)
+    streamHandler = logging.StreamHandler()
+    streamHandler.setFormatter(formatter)
+
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(fileHandler)
+    logger.addHandler(streamHandler) 
 
 

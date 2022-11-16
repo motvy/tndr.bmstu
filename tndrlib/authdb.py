@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from tndrbot import config
+import config
 from tndrlib import utils as ut
 from tndrlib import createdb
-
+from tndrlib import common as log
 
 import os
 import sqlite3
@@ -12,7 +12,7 @@ class AuthDb():
     def __init__(self, user_id):
         self.user_id = str(user_id)
 
-        db_path = config.adb_path
+        db_path = config.store_settings['adb_path']
         if not db_path:
             raise Exception('Path authdb is empty. See config')	
 
@@ -22,13 +22,13 @@ class AuthDb():
         self.conn = None
         if os.path.exists(db_path):
 
-            print('Connect cache db', db_path)
+            log.log_info(f'Connect cache db {db_path}')
 
             self.conn = sqlite3.connect(db_path)
             self.cursor = self.conn.cursor()
 
         else:
-            print('Create bot db', db_path)
+            log.log_info(f'Create bot db {db_path}')
 
             self.conn, self.cursor = createdb.create_db()
 
@@ -88,7 +88,7 @@ class AuthDb():
 
 
     def reset_code_query(self):
-        print(f"reset code from {self.user_id}")
+        log.info(f"reset code from {self.user_id}")
 
 
     def get_code_query(self):
@@ -113,7 +113,6 @@ class AuthDb():
             return False
     
     def set_lang(self, lang_code):
-        print(f'select lang {lang_code}')
         self.cursor.execute("update users set lang={} where user_id={}".format(lang_code, self.user_id))
         self.conn.commit()
 

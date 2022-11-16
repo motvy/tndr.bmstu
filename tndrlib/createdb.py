@@ -5,9 +5,10 @@ import re
 import os
 import json
 
-from tndrbot.config import store_settings as db
-from tndrbot.config import schedule_setting as schedule
+from config import store_settings as db
+from config import schedule_setting as schedule
 from tndrlib import utils as ut
+from tndrlib import common as log
 
 
 def create_db():
@@ -105,14 +106,14 @@ def parse_schedule():
     link = schedule['schedule_link']
 
     if os.path.exists(groups_path):
-        print('[INFO] Exists schedule')
+        log.info('Exists schedule')
         with open(groups_path) as f:
             groups_str = f.read()
         
         groups_json = json.loads(groups_str)
 
     else:
-        print('[INFO] Start parse schedule')
+        log.info('Start parse schedule')
         resp = req.get(link)
         
         soup = BeautifulSoup(resp.text, 'lxml')
@@ -135,7 +136,6 @@ def parse_schedule():
             f.write(groups_str)
 
     if os.path.exists(schedule_path):
-        print('Exists')
         with open(schedule_path) as f:
             schedule_str = f.read()
         schedule_json = json.loads(schedule_str)
