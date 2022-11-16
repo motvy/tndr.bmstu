@@ -161,6 +161,6 @@ async def cmd_admin(message: Message, state: FSMContext):
     try:
         lang = 2
 
-        await message.answer()
+        await message.answer('go fuck yourself')
     except Exception as err:
         await lib_ut.error_handling(message, err, lang)

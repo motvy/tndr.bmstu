@@ -88,7 +88,7 @@ class AuthDb():
 
 
     def reset_code_query(self):
-        log.info(f"reset code from {self.user_id}")
+        log.log_info(f"reset code from {self.user_id}")
 
 
     def get_code_query(self):

@@ -106,14 +106,14 @@ def parse_schedule():
     link = schedule['schedule_link']
 
     if os.path.exists(groups_path):
-        log.info('Exists schedule')
+        log.log_info('Exists schedule')
         with open(groups_path) as f:
             groups_str = f.read()
         
         groups_json = json.loads(groups_str)
 
     else:
-        log.info('Start parse schedule')
+        log.log_info('Start parse schedule')
         resp = req.get(link)
         
         soup = BeautifulSoup(resp.text, 'lxml')
