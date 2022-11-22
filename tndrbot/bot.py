@@ -10,8 +10,7 @@ sys.path.append(scriptDir)
 import asyncio
 
 async def main():
-    if __name__ == '__main__':
-        print("START")
-        await asyncio.gather(setting_bot.main(),
-                             match_bot.main(),)
+    await asyncio.gather(setting_bot.main(), match_bot.main())
+
 asyncio.run(main())
+
