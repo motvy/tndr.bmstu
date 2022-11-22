@@ -9,7 +9,7 @@ import asyncio
 from aiogram import Bot, Dispatcher
 
 import config
-from handlers import common, login, profile
+from setting_handlers import common, login, profile
 
 from tndrlib import common as log
 
