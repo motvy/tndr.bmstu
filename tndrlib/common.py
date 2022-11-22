@@ -25,7 +25,7 @@ def log_info(info):
 
 def log_error(info):
     main = logging.getLogger('main')
-    main.error(info)
+    main.exception(info)
 
 def log_debug(info):
     main = logging.getLogger('main')
