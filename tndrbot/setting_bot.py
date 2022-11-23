@@ -19,19 +19,19 @@ async def main():
     bot = Bot(token=config.settings_bot_settings['TOKEN'])
     dp = Dispatcher()
 
-    log.log_init('main')
-    log.log_info('Connect log')
+    log.log_init('main_settings')
+    log.log_info('Connect settings log')
 
     dp.include_router(common.router)
-    log.log_info('Load common')
+    log.log_info('Load settings common')
     dp.include_router(login.router)
-    log.log_info('Load login')
+    log.log_info('Load settings login')
     dp.include_router(profile.router)
-    log.log_info('Load profile')
+    log.log_info('Load settings profile')
 
     # Запускаем бота и пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)
-    log.log_info('Start bot')
+    log.log_info('Start settings bot')
     await dp.start_polling(bot)
 
 

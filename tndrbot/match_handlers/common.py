@@ -41,7 +41,7 @@ async def next_profile(callback: types.CallbackQuery, state: FSMContext):
     if "api" in user_date and user_date["api"] is not None:
         api = user_date["api"]
     else:
-        api = matchapi.MatchApi(callback.message.from_user.id, callback.message.from_user.first_name)
+        api = matchapi.MatchApi(callback.from_user.id, callback.from_user.first_name)
 
     if "profiles" in user_date and user_date["profiles"] is not None:
         profiles = user_date["profiles"]
@@ -66,9 +66,11 @@ async def next_profile(callback: types.CallbackQuery, state: FSMContext):
     except Exception as err:
         await callback.message.answer("Анкеты закончились, попробуйте зайти позже")
     else:
+        text = next_profile["text"]
+
         if next_profile:
-            text = next_profile["text"]
-            profile_photo = next_profile["photo_id"][:-20]
+            profile_photo = next_profile["photo_id"]
+
             photo_path = store_settings['file_store_path'].format(profile_photo)
             photo_path = photo_path.replace("-", "_")
 
@@ -84,6 +86,8 @@ async def next_profile(callback: types.CallbackQuery, state: FSMContext):
         else:
             text = "пусто"
             await callback.message.answer(text)
+
+
         await state.update_data(profiles = profiles, api = api, start_msg = current_msg)
 
 @router.callback_query(text="swipe_callback")

@@ -19,12 +19,15 @@ async def main():
     bot = Bot(token=config.match_bot_settings['TOKEN'])
     dp = Dispatcher()
 
+    log.log_init('main_match')
+    log.log_info('Connect match log')
+
     dp.include_router(common.router)
     log.log_info('Load match common')
 
     # Запускаем бота и пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)
-    print("[INFO] start bot")
+    log.log_info('Start match bot')
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

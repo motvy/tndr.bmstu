@@ -3,6 +3,8 @@
 from tndrbot import utils as ut
 from config import schedule_setting as schedule
 from tndrlib import common as log
+import config
+import logging
 
 from datetime import date
 import re
@@ -108,21 +110,21 @@ def user_turple_to_dict(user_turple):
         }
     return user_dict
 
-def profile_turple_to_dict(user_turple, group_name):
+def profile_turple_to_dict(user_turple, group_name, photo_tg_id):
     if user_turple is None or len(user_turple) == 0:
         user_dict = None
     else:
         user_dict = {
             'name': user_turple[2],
             'date_of_birth': user_turple[3],
-            'photo_id': user_turple[4],
+            'photo_id': photo_tg_id,
             'gender': user_turple[5],
             'about_user': user_turple[6],
             'tags': user_turple[7],
             'study_group': group_name,
             'vk_link': user_turple[9],
         }
-    return user_dict
+    return user_dict, user_turple[4]
 
 def is_full_profile(profile):
     if profile is None:
@@ -173,14 +175,13 @@ def joint_time(free_time_1, free_time_2):
             'denominator': set(free_time_1[day]['denominator']) & set(free_time_2[day]['denominator']),
         }
 
-    print(joint_time)
     return joint_time
 
 def log_init(logger_name):	
     logger_file_name = config.log_path + f"/{logger_name}.log.txt"
     logger = logging.getLogger(logger_name)
 
-    fileHandler = TimedRotatingFileHandler(logger_file_name, when='midnight', interval=1, backupCount=7, encoding = "UTF-8")
+    fileHandler = logging.handlers.TimedRotatingFileHandler(logger_file_name, when='midnight', interval=1, backupCount=7, encoding = "UTF-8")
 
     formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
     # fileHandler = logging.FileHandler(logger_file_name, mode='w')

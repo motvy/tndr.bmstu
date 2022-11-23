@@ -587,7 +587,7 @@ async def set_photo(message, state: FSMContext):
 
         await current_msg.edit_text(text=mess.tr(lang, 'ask_photo'))
         photo_id = photo[2].file_id
-        api.set_photo(photo_id)
+        file_name = api.set_photo(photo_id)
         media_photo = InputMediaPhoto(type='photo', media=photo_id, caption=caption, parse_mode='markdown')
     
         try:
@@ -598,7 +598,7 @@ async def set_photo(message, state: FSMContext):
     
         file = await bot.get_file(photo_id) # Get file path
 
-        await bot.download_file(file.file_path, config.store_settings['file_store_path'].format(photo_id))
+        await bot.download_file(file.file_path, config.store_settings['file_store_path'].format(file_name))
 
         await edit_message_media.EditMessageMedia(media=media_photo, chat_id=message.chat.id, message_id=profile_msg.message_id, reply_markup=keyboard)
         

@@ -13,9 +13,7 @@ async def error_handling(msg, err, lang, edit_flag=False):
 async def check_state(state):
     user_data = await state.get_data()
     if 'profile_msg' in user_data:
-        # keyboard = user_data['reply_markup']
         caption = user_data['caption']
-        # print(user_data['profile_msg'])
         await user_data['profile_msg'].edit_caption(caption=caption, reply_markup=None, parse_mode='markdown')
     await state.clear()
 

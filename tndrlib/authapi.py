@@ -3,7 +3,6 @@
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from . import botdb
 from . import authdb
 from . import utils as ut
 from . import messages as mess
@@ -117,14 +116,15 @@ class UserApi(AbstractApi):
     def has_profile(self):
         return self.adb.get_profile() and True
 
-    def get_short_profile(self):
-        profile = self.adb.get_profile()
+    def get_short_profile(self, need_file_name=False):
+        profile, file_name = self.adb.get_profile()
         info = None
         if profile:
             name = profile['name']
             age = ut.get_age(profile['date_of_birth'])
             about = profile['about_user']
-            photo_id = profile['photo_id']
+            photo_id = file_name if need_file_name else profile['photo_id']
+
             tags = [mess.tr(self.lang(), tag) for tag in profile['tags'].split(' • ')] if profile['tags'] else None
 
             text = name if name else mess.tr(self.lang(), 'without_name')
@@ -140,7 +140,7 @@ class UserApi(AbstractApi):
         return info
 
     def get_full_profile(self):
-        profile = self.adb.get_profile()
+        profile, file_name = self.adb.get_profile()
         info = None
         text = ''
         if profile:
@@ -177,7 +177,7 @@ class UserApi(AbstractApi):
         self.adb.set_name(name)
     
     def set_photo(self, photo_id):
-        self.adb.set_photo(photo_id)
+        return self.adb.set_photo(photo_id)
     
     def set_date_of_birth(self, date):
         age = ut.get_age(date)
@@ -210,6 +210,6 @@ class UserApi(AbstractApi):
         self.adb.set_tags(tags)
 
     def is_full_profile(self):
-        profile = self.adb.get_profile()
+        profile, file_name = self.adb.get_profile()
         return ut.is_full_profile(profile)
     

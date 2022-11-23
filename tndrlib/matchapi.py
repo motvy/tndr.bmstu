@@ -43,4 +43,4 @@ class MatchApi(AbstractApi):
 
     def get_all_profiles(self):
         users_arr = self.mdb.get_confirmed_users()
-        return [authapi.UserApi(id, None).get_short_profile() for id in users_arr]
+        return [authapi.UserApi(id, None).get_short_profile(need_file_name=True) for id in users_arr]

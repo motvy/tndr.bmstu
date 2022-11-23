@@ -4,6 +4,7 @@ import config
 from tndrlib import utils as ut
 from tndrlib import createdb
 from tndrlib import common as log
+from tndrlib import matchdb
 
 import os
 import sqlite3
@@ -48,12 +49,17 @@ class AuthDb():
         self.cursor.execute("select p.* from profiles p, users u where p.auth_id=u.id and u.user_id='{}'".format(self.user_id))
         info = self.cursor.fetchone()
 
+        photo_id = info[4]
+        self.cursor.execute("select tg_file_id from files where id='{}'".format(photo_id))
+        photo_tg_id = self.cursor.fetchone()
+        photo_tg_id = photo_tg_id[0] if photo_tg_id else None
+
         group_id = info[8]
         self.cursor.execute("select g.group_name from groups g where g.id='{}'".format(group_id))
         group_name = self.cursor.fetchone()
         group_name = group_name[0] if group_name else None
 
-        return ut.profile_turple_to_dict(info, group_name)
+        return ut.profile_turple_to_dict(info, group_name, photo_tg_id)
     
     def get_group_id(self, group):
         group = group.upper()
@@ -68,6 +74,9 @@ class AuthDb():
             self.cursor.execute("select id from users where user_id='{}'".format(self.user_id))
             id = self.cursor.fetchone()[0]
             self.cursor.execute("insert into profiles (auth_id) values (?)", (id,))
+
+            mdb = matchdb.MatchDb(self.user_id)
+            mdb.set_user()
         else:
             self.cursor.execute("update users set email='{}', flags=1 where user_id={}".format(email, self.user_id))
 
@@ -129,8 +138,15 @@ class AuthDb():
         self.conn.commit() 
 
     def set_photo(self, photo_id):
-        self.cursor.execute("update profiles set photo_id='{}' from users where users.user_id={} and profiles.auth_id=users.id".format(photo_id, self.user_id))
+        self.cursor.execute("insert into files (tg_file_id) values (?)", (photo_id,))
+        
+        self.cursor.execute("select id from files where tg_file_id='{}'".format(photo_id))
+        id = self.cursor.fetchone()[0]
+
+        self.cursor.execute("update profiles set photo_id='{}' from users where users.user_id={} and profiles.auth_id=users.id".format(id, self.user_id))
         self.conn.commit()
+
+        return id
     
     def set_about(self, about):
         self.cursor.execute("update profiles set about_user='{}' from users where users.user_id={} and profiles.auth_id=users.id".format(about, self.user_id))
