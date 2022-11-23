@@ -19,7 +19,6 @@ async def main():
     bot = Bot(token=config.match_bot_settings['TOKEN'])
     dp = Dispatcher()
 
-    log.log_init('main_match')
     log.log_info('Connect match log')
 
     dp.include_router(common.router)

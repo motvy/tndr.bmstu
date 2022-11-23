@@ -19,7 +19,6 @@ async def main():
     bot = Bot(token=config.settings_bot_settings['TOKEN'])
     dp = Dispatcher()
 
-    log.log_init('main_settings')
     log.log_info('Connect settings log')
 
     dp.include_router(common.router)

@@ -19,14 +19,14 @@ def log_init(logger_name):
     logger.addHandler(fileHandler)
     logger.addHandler(streamHandler)
 
-def log_info(info):
-    main = logging.getLogger('main')
+def log_info(info, logger_name="main"):
+    main = logging.getLogger(logger_name)
     main.info(info)
 
-def log_error(info):
-    main = logging.getLogger('main')
+def log_error(info, logger_name="main"):
+    main = logging.getLogger(logger_name)
     main.exception(info)
 
-def log_debug(info):
-    main = logging.getLogger('main')
+def log_debug(info, logger_name="main"):
+    main = logging.getLogger(logger_name)
     main.debug(info)

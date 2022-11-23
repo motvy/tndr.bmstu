@@ -587,13 +587,8 @@ async def set_photo(message, state: FSMContext):
             raise Exception('No photo')
 
         await current_msg.edit_text(text=mess.tr(lang, 'ask_photo'))
-<<<<<<< HEAD
-        photo_id = photo[2].file_id
-        file_name = api.set_photo(photo_id)
-=======
         photo_id = photo[-1].file_id
-        api.set_photo(photo_id)
->>>>>>> c84d8bd75bbfb3debe71463b30ba94005b36b1b4
+        file_name = api.set_photo(photo_id)
         media_photo = InputMediaPhoto(type='photo', media=photo_id, caption=caption, parse_mode='markdown')
     
         try:

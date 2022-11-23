@@ -5,6 +5,7 @@ from config import schedule_setting as schedule
 from tndrlib import common as log
 import config
 import logging
+from logging.handlers import TimedRotatingFileHandler
 
 from datetime import date
 import re
@@ -181,7 +182,7 @@ def log_init(logger_name):
     logger_file_name = config.log_path + f"/{logger_name}.log.txt"
     logger = logging.getLogger(logger_name)
 
-    fileHandler = logging.handlers.TimedRotatingFileHandler(logger_file_name, when='midnight', interval=1, backupCount=7, encoding = "UTF-8")
+    fileHandler = TimedRotatingFileHandler(logger_file_name, when='midnight', interval=1, backupCount=7, encoding = "UTF-8")
 
     formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
     # fileHandler = logging.FileHandler(logger_file_name, mode='w')
