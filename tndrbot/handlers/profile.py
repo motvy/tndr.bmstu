@@ -568,6 +568,7 @@ async def set_date_of_birth(message, state: FSMContext):
             if 'message is not modified' not in str(err):
                 await lib_ut.error_handling(message, err, lang)
 
+
 @router.message(Profile.waiting_photo)
 async def set_photo(message, state: FSMContext):
     lang = bot_ut.default_lang(message)
@@ -586,7 +587,7 @@ async def set_photo(message, state: FSMContext):
             raise Exception('No photo')
 
         await current_msg.edit_text(text=mess.tr(lang, 'ask_photo'))
-        photo_id = photo[2].file_id
+        photo_id = photo[-1].file_id
         api.set_photo(photo_id)
         media_photo = InputMediaPhoto(type='photo', media=photo_id, caption=caption, parse_mode='markdown')
     
