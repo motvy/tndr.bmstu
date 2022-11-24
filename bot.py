@@ -12,9 +12,13 @@ from tndrlib import common as log
 
 import asyncio
 
+log.log_init('main')
+
 async def main():
-    log.log_init('main')
     await asyncio.gather(setting_bot.main(), match_bot.main())
 
-asyncio.run(main())
+try:
+    asyncio.run(main())
+except (KeyboardInterrupt, SystemExit):
+    log.log_info("Stop bots")
 
