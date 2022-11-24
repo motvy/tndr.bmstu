@@ -286,8 +286,8 @@ Or enter corrcet vk link in https://vk.com/username format''',
         2: '*О себе:* {}',
     },
     'gender_info': {
-        1: '*I am:* {}',
-        2: '*Я:* {}',
+        1: '*Gender:* {}',
+        2: '*Пол:* {}',
     },
     'vk_link_info': {
         1: '*VK link:* {}',

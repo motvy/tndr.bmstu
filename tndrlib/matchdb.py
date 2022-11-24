@@ -60,8 +60,6 @@ class MatchDb():
         self.cursor.execute("select user_id from users where flags = 2 and user_id <> '{}'".format(self.user_id))
         users = self.cursor.fetchall()
 
-        print(users, self.user_id)
-
         return [user[0] for user in users]
 
     def set_user(self):

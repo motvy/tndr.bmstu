@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import jsonpickle
+
 import config
 from tndrlib import messages as mess
 
@@ -14,8 +16,30 @@ async def check_state(state):
     user_data = await state.get_data()
     if 'profile_msg' in user_data:
         caption = user_data['caption']
-        await user_data['profile_msg'].edit_caption(caption=caption, reply_markup=None, parse_mode='markdown')
+        profile_msg = decode_fsm(user_data['profile_msg'])
+        await profile_msg.edit_caption(caption=caption, reply_markup=None, parse_mode='markdown')
+    if 'current_msg' in user_data:
+        current_msg = decode_fsm(user_data['current_msg']['msg'])
+        await current_msg.delete()
     await state.clear()
 
 def default_lang(msg):
     return 2
+
+def encode_fsm(*args):
+    result = []
+    for arg in args:
+        result.append(jsonpickle.encode(arg))
+    
+    if len(result) == 1: result = result[0]
+    
+    return result
+
+def decode_fsm(*args):
+    result = []
+    for arg in args:
+        result.append(jsonpickle.decode(arg))
+    
+    if len(result) == 1: result = result[0]
+    
+    return result

@@ -53,7 +53,6 @@ def create_db():
                             , group_id INTEGER
                             , vk_link TEXT
                             , UNIQUE (auth_id)
-                            , UNIQUE (vk_link)
                             , FOREIGN KEY (auth_id) REFERENCES users(id)
                             , FOREIGN KEY (group_id) REFERENCES groups(id)								
                             )''')

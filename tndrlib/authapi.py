@@ -36,6 +36,9 @@ class AuthApi(AbstractApi):
     def has_confirm(self):
         return True and self.adb.confirmed_user()
     
+    def is_he_waiting_code(self):
+        return True and self.adb.waiting_code_user()
+    
     def login(self, email):
         email = ut.check_bmstu_email(email)
         if email:

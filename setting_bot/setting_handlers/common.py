@@ -11,19 +11,20 @@ from tndrlib import messages as mess
 from tndrlib import authapi as botapi
 from tndrlib import meetapi
 from tndrlib import utils as lib_ut
-from tndrbot import utils as bot_ut
+from setting_keyboards import common_boards
+from setting_bot import utils as bot_ut
 import config
 
 
 router = Router()
 
 
-@router.message(Command(commands=["start"]))
-async def cmd_start(message: Message, state: FSMContext):
-    await bot_ut.check_state(state)
-    await state.clear()
-    lang = bot_ut.default_lang(message)
-    await message.answer(text=mess.tr(lang, 'start_msg'))
+# @router.message(Command(commands=["start"]))
+# async def cmd_start(message: Message, state: FSMContext):
+#     await bot_ut.check_state(state)
+#     await state.clear()
+#     lang = bot_ut.default_lang(message)
+#     await message.answer(text=mess.tr(lang, 'start_msg'))
 
 @router.message(Command(commands=["cancel"]))
 # @router.message(Text(text="отмена", text_ignore_case=True))
@@ -34,10 +35,9 @@ async def cmd_cancel(message: Message, state: FSMContext):
     elif 'current_msg' not in user_data:
         return
 
-    current_msg = user_data['current_msg']['msg']
+    current_msg_json = user_data['current_msg']['msg']
+    current_msg = bot_ut.decode_fsm(current_msg_json)
     new_text = user_data['current_msg']['new_text']
-    api = user_data['api']
-    lang = user_data['lang']
     if 'profile_msg' in user_data:
         profile_msg = user_data['profile_msg']
         keyboard = user_data['reply_markup']
@@ -49,7 +49,7 @@ async def cmd_cancel(message: Message, state: FSMContext):
     if profile_msg is not None:
         await current_msg.delete()
         await message.delete()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+        await state.update_data(profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
     else:
         await current_msg.edit_text(text=new_text)
     # await message.answer(text="Действие отменено")
@@ -67,17 +67,17 @@ async def cmd_help(message: Message, state: FSMContext):
         await lib_ut.error_handling(message, err, lang)
 
 
-@router.message(Command(commands=["about"]))
-async def cmd_about(message: Message, state: FSMContext):
-    lang = bot_ut.default_lang(message)
-    try:
-        await bot_ut.check_state(state)
-        api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
-        lang = api.lang()
+# @router.message(Command(commands=["about"]))
+# async def cmd_about(message: Message, state: FSMContext):
+#     lang = bot_ut.default_lang(message)
+#     try:
+#         await bot_ut.check_state(state)
+#         api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
+#         lang = api.lang()
 
-        await message.answer(text=mess.tr(lang, 'about'))
-    except Exception as err:
-        await lib_ut.error_handling(message, err, lang)
+#         await message.answer(text=mess.tr(lang, 'about'))
+#     except Exception as err:
+#         await lib_ut.error_handling(message, err, lang)
 
 
 @router.message(commands=["lang"])
@@ -88,18 +88,9 @@ async def cmd_delete(message: Message, state: FSMContext):
         api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
         lang = api.lang()
 
-        builder = InlineKeyboardBuilder()
-        builder.add(types.InlineKeyboardButton(
-            text=mess.tr(lang, 'ru_lang'),
-            callback_data="lang_callback_ru" )
-        )
-        builder.add(types.InlineKeyboardButton(
-            text=mess.tr(lang, 'en_lang'),
-            callback_data="lang_callback_en")
-        )
         await message.answer(
             mess.tr(lang, 'lang_question'),
-            reply_markup=builder.as_markup()
+            reply_markup=common_boards.LANG_KEYBOARD
         )
 
         await state.update_data(api=api, lang=lang)
@@ -131,20 +122,10 @@ async def cmd_swipe(message: Message, state: FSMContext):
         api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
         lang = api.lang()
 
-        mapi = meetapi.ScheduleApi(message.from_user.id)
-        free = mapi.get_free_time()
-        lib_ut.joint_time(free, free)
-
         if api.is_full_profile():
-            builder = InlineKeyboardBuilder()
-            builder.add(
-                types.InlineKeyboardButton(
-                    text=mess.tr(lang, 'swipe_btn'),
-                    url=config.chat_settings['swipe_bot_link'],
-                )
-            )
+            keyboard = common_boards.get_swipe_keyboard(lang)
 
-            message = await message.answer(text=mess.tr(lang, 'go_swipe'), parse_mode='markdown', disable_web_page_preview=True, reply_markup=builder.as_markup())
+            message = await message.answer(text=mess.tr(lang, 'go_swipe'), parse_mode='markdown', disable_web_page_preview=True, reply_markup=keyboard)
         else:
             await message.answer(text=mess.tr(lang, 'not_full_profile'))
     except Exception as err:
@@ -153,7 +134,6 @@ async def cmd_swipe(message: Message, state: FSMContext):
 
 @router.message(Command(commands=["admin"]))
 async def cmd_admin(message: Message, state: FSMContext):
-    print(message.from_user.id)
     if str(message.from_user.id) not in config.admin_settings['admins_id']:
         return
 

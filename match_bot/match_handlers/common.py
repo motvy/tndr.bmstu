@@ -74,7 +74,6 @@ async def next_profile(callback: types.CallbackQuery, state: FSMContext):
             photo_path = store_settings['file_store_path'].format(profile_photo)
             photo_path = photo_path.replace("-", "_")
 
-            print(photo_path, "\n\n\n")
             photo = FSInputFile(photo_path)
 
             current_msg = await callback.message.answer_photo(

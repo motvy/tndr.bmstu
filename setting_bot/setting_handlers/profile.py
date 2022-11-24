@@ -1,4 +1,5 @@
 import os
+import jsonpickle
 
 from aiogram import Router
 from aiogram import Bot
@@ -16,7 +17,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from tndrlib import authapi as botapi
 from tndrlib import utils as lib_ut
-from tndrbot import utils as bot_ut
+from setting_bot import utils as bot_ut
+from setting_keyboards import profile_boards
 from tndrlib import messages as mess
 
 import config
@@ -54,29 +56,17 @@ async def cmd_profile(message: Message, state: FSMContext):
             text = mess.tr(lang, 'profile_empty')
             photo = FSInputFile(no_avatar_path)
 
-        # builder = InlineKeyboardBuilder()
-        buttons = [
-            [types.InlineKeyboardButton(text=mess.tr(lang, 'name'), callback_data="name_callback"),
-            types.InlineKeyboardButton(text=mess.tr(lang, 'age'), callback_data="age_callback")],
-            [types.InlineKeyboardButton(text=mess.tr(lang, 'photo'), callback_data="photo_callback"),
-            types.InlineKeyboardButton(text=mess.tr(lang, 'gender'), callback_data="gender_callback")],
-            [types.InlineKeyboardButton(text=mess.tr(lang, 'about'), callback_data="about_callback"),
-            types.InlineKeyboardButton(text=mess.tr(lang, 'tags'), callback_data="tags_callback")],
-            [types.InlineKeyboardButton(text=mess.tr(lang, 'group'), callback_data="study_group_callback"),
-            types.InlineKeyboardButton(text=mess.tr(lang, 'vk_link'), callback_data="vk_link_callback")],
-            [types.InlineKeyboardButton(text=mess.tr(lang, 'view'), callback_data="view_callback")],
-        ]
-
-        keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+        keyboard = profile_boards.get_profile_edit_keyboard(lang)
         
-        message = await message.answer_photo(
+        current_message = await message.answer_photo(
             photo=photo,
             caption=text,
             reply_markup=keyboard,
             parse_mode='markdown',
         )
 
-        await state.update_data(api=api, lang=lang, profile_msg=message, reply_markup=keyboard, caption=text)
+        message_json, keyboard_json = bot_ut.encode_fsm(current_message, keyboard)
+        await state.update_data(lang=lang, profile_msg=message_json, reply_markup=keyboard_json, caption=text)
 
     except Exception as err:
         await state.clear()
@@ -86,164 +76,155 @@ async def cmd_profile(message: Message, state: FSMContext):
 async def name_callback(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_data = await state.get_data()
-    api = user_data['api']
-    lang = user_data['lang']
     profile_msg = user_data['profile_msg']
     keyboard = user_data['reply_markup']
     caption = user_data['caption']
 
     if 'current_msg' in user_data:
-        current_msg = user_data['current_msg']['msg']
+        current_msg_json = user_data['current_msg']['msg']
+        current_msg = bot_ut.decode_fsm(current_msg_json)
+
         try:
             await current_msg.delete()
         except Exception as err:
             print(err)
+    
+    api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+    lang = api.lang()
 
     text = mess.tr(lang, 'ask_name') + '\n' + mess.tr(lang, 'cancel_command')
     message = await callback.message.answer(text)
+    message_json = bot_ut.encode_fsm(message)
 
-    await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+    await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
     await state.set_state(Profile.waiting_name)
 
 @router.callback_query(text="age_callback")
 async def age_callback(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_data = await state.get_data()
-    api = user_data['api']
-    lang = user_data['lang']
     profile_msg = user_data['profile_msg']
     keyboard = user_data['reply_markup']
     caption = user_data['caption']
 
     if 'current_msg' in user_data:
-        current_msg = user_data['current_msg']['msg']
+        current_msg_json = user_data['current_msg']['msg']
+        current_msg = bot_ut.decode_fsm(current_msg_json)
         try:
             await current_msg.delete()
         except Exception as err:
             print(err)
+    
+    api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+    lang = api.lang()
 
     text = mess.tr(lang, 'ask_date_of_birth') + '\n' + mess.tr(lang, 'cancel_command')
     message = await callback.message.answer(text)
+    message_json = bot_ut.encode_fsm(message)
 
-    await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_date')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+    await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_date')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
     await state.set_state(Profile.waiting_date_of_birth)
 
 @router.callback_query(text="photo_callback")
 async def photo_callback(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_data = await state.get_data()
-    api = user_data['api']
-    lang = user_data['lang']
     profile_msg = user_data['profile_msg']
     keyboard = user_data['reply_markup']
     caption = user_data['caption']
 
     if 'current_msg' in user_data:
-        current_msg = user_data['current_msg']['msg']
+        current_msg_json = user_data['current_msg']['msg']
+        current_msg = bot_ut.decode_fsm(current_msg_json)
         try:
             await current_msg.delete()
         except Exception as err:
             print(err)
 
+    api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+    lang = api.lang()
+
     text = mess.tr(lang, 'ask_photo') + '\n' + mess.tr(lang, 'cancel_command')
     message = await callback.message.answer(text)
+    message_json = bot_ut.encode_fsm(message)
 
-    await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_photo')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+    await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_photo')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
     await state.set_state(Profile.waiting_photo)
 
 @router.callback_query(text="about_callback")
 async def about_callback(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_data = await state.get_data()
-    api = user_data['api']
-    lang = user_data['lang']
     profile_msg = user_data['profile_msg']
     keyboard = user_data['reply_markup']
     caption = user_data['caption']
 
     if 'current_msg' in user_data:
-        current_msg = user_data['current_msg']['msg']
+        current_msg_json = user_data['current_msg']['msg']
+        current_msg = bot_ut.decode_fsm(current_msg_json)
         try:
             await current_msg.delete()
         except Exception as err:
             print(err)
+    
+    api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+    lang = api.lang()
 
     text = mess.tr(lang, 'ask_about') + '\n' + mess.tr(lang, 'cancel_command')
     message = await callback.message.answer(text)
+    message_json = bot_ut.encode_fsm(message)
 
-    await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+    await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
     await state.set_state(Profile.waiting_about)
 
 @router.callback_query(text="gender_callback")
 async def gender_callback(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_data = await state.get_data()
-    api = user_data['api']
-    lang = user_data['lang']
     profile_msg = user_data['profile_msg']
     keyboard = user_data['reply_markup']
     caption = user_data['caption']
 
     if 'current_msg' in user_data:
-        current_msg = user_data['current_msg']['msg']
+        current_msg_json = user_data['current_msg']['msg']
+        current_msg = bot_ut.decode_fsm(current_msg_json)
         try:
             await current_msg.delete()
         except Exception as err:
             print(err)
 
-    builder = InlineKeyboardBuilder()
-    builder.add(types.InlineKeyboardButton(
-        text='Парень',
-        callback_data="chose_callback_m" )
-    )
-    builder.add(types.InlineKeyboardButton(
-        text='Девушка',
-        callback_data="chose_callback_w")
-    )
+    api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+    lang = api.lang()
+
+    gender_keyboard = profile_boards.get_gender_keyboard(lang)
     message = await callback.message.answer(
         mess.tr(lang, 'ask_gender'),
-        reply_markup=builder.as_markup()
+        reply_markup=gender_keyboard,
     )
-    await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+    message_json = bot_ut.encode_fsm(message)
+
+    await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
 
 @router.callback_query(text="tags_callback")
 async def tags_callback(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_data = await state.get_data()
-    api = user_data['api']
-    lang = user_data['lang']
     profile_msg = user_data['profile_msg']
     keyboard = user_data['reply_markup']
     caption = user_data['caption']
 
     if 'current_msg' in user_data:
-        current_msg = user_data['current_msg']['msg']
+        current_msg_json = user_data['current_msg']['msg']
+        current_msg = bot_ut.decode_fsm(current_msg_json)
         try:
             await current_msg.delete()
         except Exception as err:
             print(err)
 
-    buttons = [
-        [types.InlineKeyboardButton(text=mess.tr(lang, 'it'), callback_data="chose_tags_callback_it"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'anime'), callback_data="chose_tags_callback_anime"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'sport'), callback_data="chose_tags_callback_sport")],
-        [types.InlineKeyboardButton(text=mess.tr(lang, 'study'), callback_data="chose_tags_callback_study"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'music'), callback_data="chose_tags_callback_music"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'party'), callback_data="chose_tags_callback_party")],
-        [types.InlineKeyboardButton(text=mess.tr(lang, 'books'), callback_data="chose_tags_callback_books"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'games'), callback_data="chose_tags_callback_games"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'science'), callback_data="chose_tags_callback_science")],
-        [types.InlineKeyboardButton(text=mess.tr(lang, 'films'), callback_data="chose_tags_callback_films"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'food'), callback_data="chose_tags_callback_food"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'languages'), callback_data="chose_tags_callback_languages")],
-        [types.InlineKeyboardButton(text=mess.tr(lang, 'finance'), callback_data="chose_tags_callback_finance"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'medicine'), callback_data="chose_tags_callback_medicine"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'history'), callback_data="chose_tags_callback_history")],
-        [types.InlineKeyboardButton(text=mess.tr(lang, 'clear'), callback_data="tags_callback"),
-        types.InlineKeyboardButton(text=mess.tr(lang, 'save'), callback_data="end_callback")],
-    ]
+    api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+    lang = api.lang()
 
-    tags_keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    tags_keyboard = profile_boards.get_tags_keyboard(lang)
     text = mess.tr(lang, 'ask_tags') + '\n' + mess.tr(lang, 'cancel_command')
     
     message = await callback.message.answer(
@@ -251,17 +232,18 @@ async def tags_callback(callback: types.CallbackQuery, state: FSMContext):
         reply_markup=tags_keyboard,
         parse_mode='markdown',
     )
-
+    message_json = bot_ut.encode_fsm(message)
     tags = []
-    await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption, tags=tags)
+
+    await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption, tags=tags)
 
 @router.callback_query(Text(text_startswith="chose_tags_callback_"))
 async def chose_tags_callback(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
-        current_msg = user_data['current_msg']['msg']
+        current_msg_json = user_data['current_msg']['msg']
+        current_msg = bot_ut.decode_fsm(current_msg_json)
         profile_msg = user_data['profile_msg']
         keyboard = user_data['reply_markup']
         caption = user_data['caption']
@@ -279,32 +261,40 @@ async def chose_tags_callback(callback: types.CallbackQuery, state: FSMContext):
                 if el.callback_data == callback.data:
                     el_list.remove(el)
                     break
+
+        api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+        lang = api.lang()
         
         tr_tags = [mess.tr(lang, t) for t in tags]
         text = ' • '.join(tr_tags) + '\n' + mess.tr(lang, 'cancel_command')
         await current_msg.edit_text(text, reply_markup=current_reply_markup)
 
-        await state.update_data(api=api, lang=lang, current_msg=user_data['current_msg'], profile_msg=profile_msg, reply_markup=keyboard, caption=caption, tags=tags)
+        user_data['current_msg']['msg'] = bot_ut.encode_fsm(current_msg)
+        await state.update_data(current_msg=user_data['current_msg'], profile_msg=profile_msg, reply_markup=keyboard, caption=caption, tags=tags)
 
     except Exception as err:
         raise err
 
 @router.callback_query(text="end_callback")
 async def end_callback(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
-        current_msg = user_data['current_msg']['msg']
-        profile_msg = user_data['profile_msg']
-        keyboard = user_data['reply_markup']
+        current_msg_json = user_data['current_msg']['msg']
+        profile_msg_json = user_data['profile_msg']
+        keyboard_json = user_data['reply_markup']
         caption = user_data['caption']
         tags = user_data['tags']
+
+        current_msg, profile_msg, keyboard = bot_ut.decode_fsm(current_msg_json, profile_msg_json, keyboard_json)
         
         try:
             await current_msg.delete()
         except Exception as err:
             print(err)
+        
+        api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+        lang = api.lang()
 
         api.set_tags(' • '.join(tags))
 
@@ -312,12 +302,12 @@ async def end_callback(callback: types.CallbackQuery, state: FSMContext):
         await profile_msg.edit_caption(caption=new_caption, reply_markup=keyboard, parse_mode='markdown')
 
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
 
     except Exception as err:
         await state.clear()
         if 'message is not modified' in str(err):
-            await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
         else:
             await lib_ut.error_handling(callback.message, err, lang)
 
@@ -325,42 +315,43 @@ async def end_callback(callback: types.CallbackQuery, state: FSMContext):
 async def vk_link_callback(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_data = await state.get_data()
-    api = user_data['api']
-    lang = user_data['lang']
     profile_msg = user_data['profile_msg']
     keyboard = user_data['reply_markup']
     caption = user_data['caption']
 
     if 'current_msg' in user_data:
-        current_msg = user_data['current_msg']['msg']
+        current_msg_json = user_data['current_msg']['msg']
+        current_msg = bot_ut.decode_fsm(current_msg_json)
         try:
             await current_msg.delete()
         except Exception as err:
             print(err)
 
+    api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+    lang = api.lang()
+
     text = mess.tr(lang, 'ask_vk_link') + '\n' + mess.tr(lang, 'cancel_command')
 
-    builder = InlineKeyboardBuilder()
-    builder.add(
-        types.InlineKeyboardButton(
-            text=mess.tr(lang, 'no_vk'),
-            callback_data="no_vk_callback",
-        )
-    )
+    no_vk_keyboard = profile_boards.get_no_vk_keyboard(lang)
 
-    message = await callback.message.answer(text, reply_markup=builder.as_markup())
+    message = await callback.message.answer(text, reply_markup=no_vk_keyboard)
+    message_json = bot_ut.encode_fsm(message)
 
-    await state.update_data(api=api, lang=lang, current_msg={'msg': message, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+    await state.update_data(current_msg={'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
     await state.set_state(Profile.waiting_vk_link)
 
 @router.callback_query(Text(text_startswith="no_vk_callback"))
 async def no_vk_callback(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
-        profile_msg = user_data['profile_msg']
-        keyboard = user_data['reply_markup']
+        profile_msg_json = user_data['profile_msg']
+        keyboard_json = user_data['reply_markup']
+
+        profile_msg, keyboard = bot_ut.decode_fsm(profile_msg_json, keyboard_json)
+
+        api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+        lang = api.lang()
 
         api.set_vk_link('no')
 
@@ -372,22 +363,26 @@ async def no_vk_callback(callback: types.CallbackQuery, state: FSMContext):
         new_caption = api.get_full_profile()['text']
         await profile_msg.edit_caption(caption=new_caption, reply_markup=keyboard, parse_mode='markdown')
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
     except Exception as err:
         await state.clear()
         if 'message is not modified' in str(err):
-            await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+            await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
         else:
             await lib_ut.error_handling(callback.message, err, lang)
 
 @router.callback_query(Text(text_startswith="chose_callback_"))
 async def chose_callback(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
-        profile_msg = user_data['profile_msg']
-        keyboard = user_data['reply_markup']
+        profile_msg_json = user_data['profile_msg']
+        keyboard_json = user_data['reply_markup']
+
+        profile_msg, keyboard = bot_ut.decode_fsm(profile_msg_json, keyboard_json)
+
+        api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+        lang = api.lang()
         
         if 'chose_callback_m' in callback.data:
             api.set_gender(1)
@@ -402,12 +397,12 @@ async def chose_callback(callback: types.CallbackQuery, state: FSMContext):
         new_caption = api.get_full_profile()['text']
         await profile_msg.edit_caption(caption=new_caption, reply_markup=keyboard, parse_mode='markdown')
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
 
     except Exception as err:
         await state.clear()
         if 'message is not modified' in str(err):
-            await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+            await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
         else:
             await lib_ut.error_handling(callback.message, err, lang)
         # await lib_ut.error_handling(callback.message, err, lang, edit_flag=True)
@@ -416,41 +411,47 @@ async def chose_callback(callback: types.CallbackQuery, state: FSMContext):
 async def study_group_callback(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     user_data = await state.get_data()
-    api = user_data['api']
-    lang = user_data['lang']
     profile_msg = user_data['profile_msg']
     keyboard = user_data['reply_markup']
     caption = user_data['caption']
 
     if 'current_msg' in user_data:
-        current_msg = user_data['current_msg']['msg']
+        current_msg_json = user_data['current_msg']['msg']
+        current_msg = bot_ut.decode_fsm(current_msg_json)
         try:
             await current_msg.delete()
         except Exception as err:
             print(err)
 
+    api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+    lang = api.lang()
+
     text = mess.tr(lang, 'ask_study_group') + '\n' + mess.tr(lang, 'cancel_command')
     message = await callback.message.answer(text)
+    message_json = bot_ut.encode_fsm(message)
 
-    await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+    await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
     await state.set_state(Profile.waiting_study_group)
 
 @router.callback_query(text="view_callback")
 async def view_callback(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
         profile_msg = user_data['profile_msg']
         keyboard = user_data['reply_markup']
         caption = user_data['caption']
 
         if 'current_msg' in user_data:
-            current_msg = user_data['current_msg']['msg']
+            current_msg_json = user_data['current_msg']['msg']
+            current_msg = bot_ut.decode_fsm(current_msg_json)
             try:
                 await current_msg.delete()
             except Exception as err:
                 print(err)
+
+        api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+        lang = api.lang()
 
         profile_info = api.get_short_profile()
 
@@ -470,25 +471,29 @@ async def view_callback(callback: types.CallbackQuery, state: FSMContext):
             caption=text,
             parse_mode='markdown',
         )
+        message_json = bot_ut.encode_fsm(message)
 
-        await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+        await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
 
     except Exception as err:
         await state.clear()
-        await lib_ut.error_handling(message, err, lang)
-        await state.update_data(api=api, lang=lang, profile_msg=message, reply_markup=keyboard, caption=text)
+        await lib_ut.error_handling(callback.message, err, lang)
+        await state.update_data(profile_msg=profile_msg, reply_markup=keyboard, caption=text)
 
 @router.message(Profile.waiting_name)
 async def set_name(message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
-        current_msg = user_data['current_msg']['msg']
-        profile_msg = user_data['profile_msg']
-        keyboard = user_data['reply_markup']
+        current_msg_json = user_data['current_msg']['msg']
+        profile_msg_json = user_data['profile_msg']
+        keyboard_json = user_data['reply_markup']
         caption = user_data['caption']
+
+        profile_msg, keyboard, current_msg = bot_ut.decode_fsm(profile_msg_json, keyboard_json, current_msg_json)
+
+        api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
 
         name = message.text.strip()
         # text = mess.tr(lang, 'incorrect_name') if 'after_error' in user_data else mess.tr(lang, 'ask_name')
@@ -505,10 +510,10 @@ async def set_name(message, state: FSMContext):
 
         await profile_msg.edit_caption(caption=new_caption, reply_markup=keyboard, parse_mode='markdown')
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
     except Exception as err:
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
         if 'Incorrect name' == str(err):
             try:
                 await current_msg.delete()
@@ -518,7 +523,8 @@ async def set_name(message, state: FSMContext):
 
             text = mess.tr(lang, 'incorrect_name') + '\n' + mess.tr(lang, 'cancel_command')
             message = await message.answer(text)
-            await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            message_json = bot_ut.encode_fsm(message)
+            await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             await state.set_state(Profile.waiting_name)            
         elif 'message is not modified' not in str(err):
             await lib_ut.error_handling(message, err, lang)
@@ -528,12 +534,15 @@ async def set_date_of_birth(message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
-        current_msg = user_data['current_msg']['msg']
-        profile_msg = user_data['profile_msg']
-        keyboard = user_data['reply_markup']
+        current_msg_json = user_data['current_msg']['msg']
+        profile_msg_json = user_data['profile_msg']
+        keyboard_json = user_data['reply_markup']
         caption = user_data['caption']
+
+        profile_msg, keyboard, current_msg = bot_ut.decode_fsm(profile_msg_json, keyboard_json, current_msg_json)
+
+        api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
 
         date = message.text.strip()
         # text = mess.tr(lang, 'incorrect_date') if 'after_error' in user_data else mess.tr(lang, 'ask_date_of_birth')
@@ -550,7 +559,7 @@ async def set_date_of_birth(message, state: FSMContext):
 
         await profile_msg.edit_caption(caption=new_caption, reply_markup=keyboard, parse_mode='markdown')
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
     except Exception as err:
         if 'Incorrect date' in str(err):
             try:
@@ -559,12 +568,13 @@ async def set_date_of_birth(message, state: FSMContext):
             except Exception as err:
                 print(err)
             text = mess.tr(lang, 'incorrect_date') + '\n' + mess.tr(lang, 'cancel_command')
-            message = await message.answer(text)
-            await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_date')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            current_message = await message.answer(text)
+            message_json = bot_ut.encode_fsm(current_message)
+            await state.update_data(current_msg={'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_date')}, profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             await state.set_state(Profile.waiting_date_of_birth)
         else:
             await state.clear()
-            await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             if 'message is not modified' not in str(err):
                 await lib_ut.error_handling(message, err, lang)
 
@@ -574,12 +584,15 @@ async def set_photo(message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
-        current_msg = user_data['current_msg']['msg']
-        profile_msg = user_data['profile_msg']
-        keyboard = user_data['reply_markup']
+        current_msg_json = user_data['current_msg']['msg']
+        profile_msg_json = user_data['profile_msg']
+        keyboard_json = user_data['reply_markup']
         caption = user_data['caption']
+
+        current_msg, profile_msg, keyboard = bot_ut.decode_fsm(current_msg_json, profile_msg_json, keyboard_json)
+
+        api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
 
         photo = message.photo
         if photo is None or len(photo) == 0:
@@ -604,7 +617,7 @@ async def set_photo(message, state: FSMContext):
         await edit_message_media.EditMessageMedia(media=media_photo, chat_id=message.chat.id, message_id=profile_msg.message_id, reply_markup=keyboard)
         
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
     except Exception as err:
         if 'No photo' in str(err):
             try:
@@ -613,12 +626,13 @@ async def set_photo(message, state: FSMContext):
             except Exception as err:
                 print(err)
             text = mess.tr(lang, 'ask_photo') + '\n' + mess.tr(lang, 'cancel_command')
-            message = await message.answer(text)
-            await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_photo')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            current_message = await message.answer(text)
+            message_json = bot_ut.encode_fsm(current_message)
+            await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_photo')}, profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             await state.set_state(Profile.waiting_photo)
         else:         
             await state.clear()
-            await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             if 'message is not modified' not in str(err):
                 await lib_ut.error_handling(message, err, lang)
 
@@ -627,12 +641,15 @@ async def set_about(message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         user_data = await state.get_data()
-        api = user_data['api'] 
-        lang = user_data['lang']
-        current_msg = user_data['current_msg']['msg']
-        profile_msg = user_data['profile_msg']
-        keyboard = user_data['reply_markup']
+        current_msg_json = user_data['current_msg']['msg']
+        profile_msg_json = user_data['profile_msg']
+        keyboard_json = user_data['reply_markup']
         caption = user_data['caption']
+
+        current_msg, profile_msg, keyboard = bot_ut.decode_fsm(current_msg_json, profile_msg_json, keyboard_json)
+
+        api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
 
         about = message.text.strip()
         text = mess.tr(lang, 'incorrect_about', '') if 'after_error' in user_data else mess.tr(lang, 'ask_about')
@@ -649,7 +666,7 @@ async def set_about(message, state: FSMContext):
 
         await profile_msg.edit_caption(caption=new_caption, reply_markup=keyboard, parse_mode='markdown')
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
     except Exception as err:
         if 'Incorrect about' in str(err):
             try:
@@ -659,12 +676,13 @@ async def set_about(message, state: FSMContext):
                 print(err)
             len_about = str(err).split(';')[-1]
             text = mess.tr(lang, 'incorrect_about', len_about) + '\n' + mess.tr(lang, 'cancel_command')
-            message = await message.answer(text)
-            await state.update_data(after_error=True, api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            current_message = await message.answer(text)
+            message_json = bot_ut.encode_fsm(current_message)
+            await state.update_data(after_error=True, current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             await state.set_state(Profile.waiting_about)
         else:
             await state.clear()
-            await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             if 'message is not modified' not in str(err):
                 await lib_ut.error_handling(message, err, lang)
 
@@ -673,12 +691,15 @@ async def set_vk_link(message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
-        current_msg = user_data['current_msg']['msg']
-        profile_msg = user_data['profile_msg']
-        keyboard = user_data['reply_markup']
+        current_msg_json = user_data['current_msg']['msg']
+        profile_msg_json = user_data['profile_msg']
+        keyboard_json = user_data['reply_markup']
         caption = user_data['caption']
+
+        current_msg, profile_msg, keyboard = bot_ut.decode_fsm(current_msg_json, profile_msg_json, keyboard_json)
+
+        api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
 
         vk_link = message.text.strip()
         # text = mess.tr(lang, 'incorrect_name') if 'after_error' in user_data else mess.tr(lang, 'ask_name')
@@ -695,10 +716,10 @@ async def set_vk_link(message, state: FSMContext):
 
         await profile_msg.edit_caption(caption=new_caption, reply_markup=keyboard, parse_mode='markdown')
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
     except Exception as err:
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
         if 'Incorrect vk link' == str(err):
             try:
                 await current_msg.delete()
@@ -707,17 +728,12 @@ async def set_vk_link(message, state: FSMContext):
                 print(err)
 
             text = mess.tr(lang, 'incorrect_vk_link') + '\n' + mess.tr(lang, 'cancel_command')
-            builder = InlineKeyboardBuilder()
-            builder.add(
-                types.InlineKeyboardButton(
-                    text=mess.tr(lang, 'no_vk'),
-                    callback_data="no_vk_callback",
-                )
-            )
+            no_vk_keyboard = profile_boards.get_no_vk_keyboard(lang)
 
-            message = await message.answer(text, reply_markup=builder.as_markup())
+            current_message = await message.answer(text, reply_markup=no_vk_keyboard)
+            message_json = bot_ut.encode_fsm(current_message)
 
-            await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             await state.set_state(Profile.waiting_vk_link)   
         elif 'UNIQUE constraint failed: profiles.vk_link':
             try:
@@ -727,16 +743,12 @@ async def set_vk_link(message, state: FSMContext):
                 print(err)
 
             text = mess.tr(lang, 'not_unique_vk_link', vk_link, config.chat_settings['contact_support']) + '\n' + mess.tr(lang, 'cancel_command')
-            builder = InlineKeyboardBuilder()
-            builder.add(
-                types.InlineKeyboardButton(
-                    text=mess.tr(lang, 'no_vk'),
-                    callback_data="no_vk_callback",
-                )
-            )
 
-            message = await message.answer(text, parse_mode='markdown', disable_web_page_preview=True, reply_markup=builder.as_markup())
-            await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            no_vk_keyboard = profile_boards.get_no_vk_keyboard(lang)
+            current_message = await message.answer(text, parse_mode='markdown', disable_web_page_preview=True, reply_markup=no_vk_keyboard)
+            message_json = bot_ut.encode_fsm(current_message)
+
+            await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             await state.set_state(Profile.waiting_vk_link)                        
         elif 'message is not modified' not in str(err):
             await lib_ut.error_handling(message, err, lang)
@@ -746,12 +758,15 @@ async def set_study_group(message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
-        current_msg = user_data['current_msg']['msg']
-        profile_msg = user_data['profile_msg']
-        keyboard = user_data['reply_markup']
+        current_msg_json = user_data['current_msg']['msg']
+        profile_msg_json = user_data['profile_msg']
+        keyboard_json = user_data['reply_markup']
         caption = user_data['caption']
+
+        current_msg, profile_msg, keyboard = bot_ut.decode_fsm(current_msg_json, profile_msg_json, keyboard_json)
+
+        api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
 
         study_group = message.text.strip()
         # text = mess.tr(lang, 'incorrect_name') if 'after_error' in user_data else mess.tr(lang, 'ask_name')
@@ -768,10 +783,10 @@ async def set_study_group(message, state: FSMContext):
 
         await profile_msg.edit_caption(caption=new_caption, reply_markup=keyboard, parse_mode='markdown')
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=new_caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=new_caption)
     except Exception as err:
         await state.clear()
-        await state.update_data(api=api, lang=lang, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+        await state.update_data(profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
         if 'Incorrect study group' == str(err):
             try:
                 await current_msg.delete()
@@ -780,8 +795,9 @@ async def set_study_group(message, state: FSMContext):
                 print(err)
 
             text = mess.tr(lang, 'incorrect_study_group') + '\n' + mess.tr(lang, 'cancel_command')
-            message = await message.answer(text)
-            await state.update_data(api=api, lang=lang, current_msg= {'msg': message, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
+            current_message = await message.answer(text)
+            message_json = bot_ut.encode_fsm(current_message)
+            await state.update_data(current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_name')}, profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             await state.set_state(Profile.waiting_study_group)            
         elif 'message is not modified' not in str(err):
             await lib_ut.error_handling(message, err, lang)

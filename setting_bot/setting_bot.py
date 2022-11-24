@@ -8,6 +8,9 @@ import asyncio
 
 from aiogram import Bot, Dispatcher
 
+from aioredis import Redis
+from aiogram.fsm.storage.redis import RedisStorage
+
 import config
 from setting_handlers import common, login, profile
 
@@ -17,7 +20,10 @@ from tndrlib import common as log
 # Запуск бота
 async def main():
     bot = Bot(token=config.settings_bot_settings['TOKEN'])
-    dp = Dispatcher()
+
+    redis = Redis()
+
+    dp = Dispatcher(storage=RedisStorage(redis=redis))
 
     log.log_info('Connect settings log')
 

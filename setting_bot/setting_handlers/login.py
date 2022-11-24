@@ -9,23 +9,25 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from tndrlib import authapi as botapi
 from tndrlib import utils as lib_ut
-from tndrbot import utils as bot_ut
+from setting_bot import utils as bot_ut
 from tndrlib import messages as mess
 
 router = Router()
-
-
 
 class Login(StatesGroup):
     waiting_email = State()
     waiting_code_query = State()
 
-@router.message(commands=["login"])
+@router.message(commands=["login", "start"])
 async def cmd_login(message: Message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         await bot_ut.check_state(state)
         api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
+
+        if api.has_confirm():
+            return
+
         lang = api.lang()
 
         await state.update_data(api=api, lang=lang)
@@ -46,9 +48,16 @@ async def cmd_login(message: Message, state: FSMContext):
 async def cmd_code(message: Message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
-        msg = None
+        # msg = None
         await bot_ut.check_state(state)
         api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
+
+        if api.has_confirm():
+            return
+        
+        if not api.is_he_waiting_code():
+            return
+
         lang = api.lang()
 
         email = api.has_email()

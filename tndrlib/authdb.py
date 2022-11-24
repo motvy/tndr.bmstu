@@ -38,7 +38,11 @@ class AuthDb():
         self.cursor.execute("select * from users where user_id='{}' and flags = 2".format(self.user_id))
         info = self.cursor.fetchone()
         return ut.user_turple_to_dict(info)
-
+    
+    def waiting_code_user(self):
+        self.cursor.execute("select * from users where user_id='{}' and flags = 1".format(self.user_id))
+        info = self.cursor.fetchone()
+        return ut.user_turple_to_dict(info)
 
     def get_user(self):
         self.cursor.execute("select * from users where user_id='{}'".format(self.user_id))
