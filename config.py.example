@@ -1,0 +1,32 @@
+settings_bot_settings = {
+    'TOKEN': '',
+    'bot_login':'',
+    'bot_password': '', 
+}
+
+match_bot_settings = {
+    'TOKEN': ''
+}
+
+store_settings = {
+    'adb_path': '',
+    'mdb_path': '',
+    'file_store_path': '',
+    'log_path': '',
+    'no_avatar_path': '',
+}
+
+schedule_setting = {
+    'schedule_link' : 'https://lks.bmstu.ru/schedule/list',
+    'groups_path': '',
+    'schedule_path': '',
+}
+
+chat_settings = {
+    'swipe_bot_link': r'https://t.me/TEST_TNDR_BOT',
+    'contact_support': r'https://t.me/daniilpodruchnyi',
+}
+
+admin_settings = {
+    'admins_id': ['399795640', '532578264'],
+}
