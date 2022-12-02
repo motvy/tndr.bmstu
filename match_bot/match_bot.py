@@ -10,19 +10,26 @@ import asyncio
 
 from aiogram import Bot, Dispatcher
 
+from aioredis import Redis
+from aiogram.fsm.storage.redis import RedisStorage
+
 import config
-from match_handlers import common
+from match_handlers import common, swipe
 
 
 # Запуск бота
 async def main():
     bot = Bot(token=config.match_bot_settings['TOKEN'])
-    dp = Dispatcher()
+
+    redis = Redis()
+    dp = Dispatcher(storage=RedisStorage(redis=redis))
 
     log.log_info('Connect match log')
 
     dp.include_router(common.router)
     log.log_info('Load match common')
+    dp.include_router(swipe.router)
+    log.log_info('Load match swipe')
 
     # Запускаем бота и пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)
