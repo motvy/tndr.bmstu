@@ -50,7 +50,7 @@ def check_name(name):
     return match.group(0) if match and len(match.group(0)) < 15 else None
 
 def check_about(about):
-    return 100 < len(about) < 500
+    return 50 <= len(about) <= 500
 
 def check_vk_link(vk_link):
     match = re.match(r'^https://vk.com/.*$', vk_link)

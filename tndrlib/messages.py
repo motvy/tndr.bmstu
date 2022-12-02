@@ -226,8 +226,8 @@ Your profile will be also deleted''',
         2: 'Расскажи немного о себе',
     },
     'incorrect_about': {
-        1: 'Tell about yourself from 100 to 500 symbols (you entered {})',
-        2: 'Расскажи о себе от 100 до 500 символов (ты ввел {})',
+        1: 'Tell about yourself from 50 to 500 symbols\nYou entered: {} ({})',
+        2: 'Расскажи о себе от 50 до 500 символов\nТы ввел: {} ({})',
     },
     'cancelled_about': {
         1: 'Profile information input canceled',

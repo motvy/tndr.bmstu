@@ -334,7 +334,7 @@ async def vk_link_callback(callback: types.CallbackQuery, state: FSMContext):
 
     no_vk_keyboard = profile_boards.get_no_vk_keyboard(lang)
 
-    message = await callback.message.answer(text, reply_markup=no_vk_keyboard)
+    message = await callback.message.answer(text, reply_markup=no_vk_keyboard, disable_web_page_preview=True)
     message_json = bot_ut.encode_fsm(message)
 
     await state.update_data(current_msg={'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_vk_link')}, profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
@@ -652,10 +652,11 @@ async def set_about(message, state: FSMContext):
         lang = api.lang()
 
         about = message.text.strip()
-        text = mess.tr(lang, 'incorrect_about', '') if 'after_error' in user_data else mess.tr(lang, 'ask_about')
+        # text = mess.tr(lang, 'incorrect_about', '', '') if 'after_error' in user_data else mess.tr(lang, 'ask_about')
+        text = mess.tr(lang, 'ask_about')
         await current_msg.edit_text(text=text)
         api.set_about(about)
-    
+
         try:
             await current_msg.delete()
             await message.delete()
@@ -674,9 +675,9 @@ async def set_about(message, state: FSMContext):
                 await message.delete()
             except Exception as err:
                 print(err)
-            len_about = str(err).split(';')[-1]
-            text = mess.tr(lang, 'incorrect_about', len_about) + '\n' + mess.tr(lang, 'cancel_command')
-            current_message = await message.answer(text)
+            err, len_about, old_about = str(err).split(';', 2)
+            text = mess.tr(lang, 'incorrect_about', old_about, len_about) + '\n' + mess.tr(lang, 'cancel_command')
+            current_message = await message.answer(text, parse_mode='markdown')
             message_json = bot_ut.encode_fsm(current_message)
             await state.update_data(after_error=True, current_msg= {'msg': message_json, 'new_text': mess.tr(lang, 'cancelled_about')}, profile_msg=profile_msg_json, reply_markup=keyboard_json, caption=caption)
             await state.set_state(Profile.waiting_about)

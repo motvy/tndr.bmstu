@@ -2,6 +2,7 @@ config.py
 test.py
 test_map.py
 sender.py
+conn.py
 botdb/
 files/
 __pycache__/

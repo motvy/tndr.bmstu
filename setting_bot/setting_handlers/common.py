@@ -93,7 +93,7 @@ async def cmd_delete(message: Message, state: FSMContext):
             reply_markup=common_boards.LANG_KEYBOARD
         )
 
-        await state.update_data(api=api, lang=lang)
+        # await state.update_data(api=api, lang=lang)
     except Exception as err:
         await state.clear()
         await lib_ut.error_handling(message, err, lang)

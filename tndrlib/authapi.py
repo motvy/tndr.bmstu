@@ -190,7 +190,7 @@ class UserApi(AbstractApi):
     
     def set_about(self, about):
         if not ut.check_about(about):
-            raise Exception(f'Incorrect about;{len(about)}')
+            raise Exception(f'Incorrect about;{len(about)};{about}')
         self.adb.set_about(about)
     
     def set_gender(self, gender_flag):
