@@ -24,18 +24,20 @@ async def cmd_login(message: Message, state: FSMContext):
     try:
         await bot_ut.check_state(state)
         api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
 
         if api.has_confirm():
             return
 
         lang = api.lang()
 
-        await state.update_data(api=api, lang=lang)
+        await state.update_data(lang=lang)
 
         text = mess.tr(lang, 'waiting_email') + '\n' + mess.tr(lang, 'cancel_command')
         msg = await message.answer(text)
-        current_msg = {'msg': msg, 'new_text': mess.tr(lang, 'canceled_login')}
-        await state.update_data(api=api, lang=lang, current_msg=current_msg)
+        msg_json = bot_ut.encode_fsm(msg)
+        current_msg = {'msg': msg_json, 'new_text': mess.tr(lang, 'canceled_login')}
+        await state.update_data(current_msg=current_msg)
         # print(msg.message_id, msg.chat.id)
         await state.set_state(Login.waiting_email)
     except Exception as err:
@@ -51,6 +53,7 @@ async def cmd_code(message: Message, state: FSMContext):
         # msg = None
         await bot_ut.check_state(state)
         api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
 
         if api.has_confirm():
             return
@@ -66,11 +69,12 @@ async def cmd_code(message: Message, state: FSMContext):
 
         text = mess.tr(lang, 'waiting_code_query', email)
         msg = await message.answer(text)
+        msg_json = bot_ut.encode_fsm(msg)
 
         api.verify()
 
-        current_msg = {'msg': msg, 'new_text': mess.tr(lang, 'canceled_login')}
-        await state.update_data(api=api, lang=lang, current_msg=current_msg)
+        current_msg = {'msg': msg_json, 'new_text': mess.tr(lang, 'canceled_login')}
+        await state.update_data(current_msg=current_msg)
         await state.set_state(Login.waiting_code_query)
 
     except Exception as err:
@@ -85,28 +89,31 @@ async def cmd_code(message: Message, state: FSMContext):
 async def login(message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
+        api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
         user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
         current_msg = user_data['current_msg']
 
         email = message.text.lower().strip()
-        await current_msg['msg'].edit_text(text=mess.tr(lang, 'waiting_email'))
+        await bot_ut.decode_fsm(current_msg['msg']).edit_text(text=mess.tr(lang, 'waiting_email'))
         api.login(email)
 
         email = api.verify()
         text = mess.tr(lang, 'waiting_code_query', email)
         msg = await message.answer(text)
-        current_msg['msg'] = msg
-        await state.update_data(api=api, lang=lang, current_msg=current_msg)
+        msg_json = bot_ut.encode_fsm(msg)
+        current_msg['msg'] = msg_json
+
+        await state.update_data(current_msg=current_msg)
 
         await state.set_state(Login.waiting_code_query)
     except Exception as err:
         if 'Invalid email' in str(err):
             text = mess.tr(lang, 'invalid_email') + '\n' + mess.tr(lang, 'cancel_command')
             msg = await message.answer(text)
-            current_msg = {'msg': msg, 'new_text': mess.tr(lang, 'canceled_login')}
-            await state.update_data(api=api, lang=lang, current_msg=current_msg)
+            msg_json = bot_ut.encode_fsm(msg)
+            current_msg = {'msg': msg_json, 'new_text': mess.tr(lang, 'canceled_login')}
+            await state.update_data(current_msg=current_msg)
             await state.set_state(Login.waiting_email)
         else:
             await state.clear()
@@ -117,9 +124,8 @@ async def login(message, state: FSMContext):
 async def code_query(message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
-        user_data = await state.get_data()
-        api = user_data['api']
-        lang = user_data['lang']
+        api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
 
         code = message.text.lower().strip()
         api.confirm(code)
@@ -161,7 +167,6 @@ async def cmd_delete(message: Message, state: FSMContext):
 
         )
 
-        await state.update_data(api=api, lang=lang)
     except Exception as err:
         await state.clear()
         await lib_ut.error_handling(message, err, lang)

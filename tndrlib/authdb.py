@@ -33,6 +33,8 @@ class AuthDb():
 
             self.conn, self.cursor = createdb.create_db()
 
+        self.mdb = matchdb.MatchDb(self.user_id)
+
 
     def confirmed_user(self):
         self.cursor.execute("select * from users where user_id='{}' and flags = 2".format(self.user_id))
@@ -78,9 +80,9 @@ class AuthDb():
             self.cursor.execute("select id from users where user_id='{}'".format(self.user_id))
             id = self.cursor.fetchone()[0]
             self.cursor.execute("insert into profiles (auth_id) values (?)", (id,))
+            self.conn.commit()
 
-            mdb = matchdb.MatchDb(self.user_id)
-            mdb.set_user()
+            self.mdb.set_user()
         else:
             self.cursor.execute("update users set email='{}', flags=1 where user_id={}".format(email, self.user_id))
 
@@ -164,6 +166,8 @@ class AuthDb():
         self.cursor.execute("update profiles set vk_link='{}' from users where users.user_id={} and profiles.auth_id=users.id".format(vk_link, self.user_id))
         self.conn.commit()
 
+        self.mdb.set_vk_link(vk_link)
+
     def set_study_group(self, study_group):
         group_id = self.get_group_id(study_group)
         self.cursor.execute("update profiles set group_id='{}' from users where users.user_id={} and profiles.auth_id=users.id".format(group_id, self.user_id))
@@ -177,3 +181,9 @@ class AuthDb():
         self.cursor.execute("select g.free_time from groups g, profiles p, users u where u.user_id={} and u.id=p.auth_id and p.group_id=g.id".format(self.user_id))
         info = self.cursor.fetchone()[0]
         return info
+
+    def get_confirmed_users(self):
+        self.cursor.execute("select user_id from users where flags = 2 and user_id <> '{}'".format(self.user_id))
+        users = self.cursor.fetchall()
+
+        return [user[0] for user in users]

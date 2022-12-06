@@ -17,7 +17,7 @@ def create_db():
                             , user_id TEXT NOT NULL								
                             , like_users_id TEXT
                             , dislike_users_id TEXT
-                            , report INTEGER
+                            , report TEXT
                             , UNIQUE (user_id)								
                             )''')
 
@@ -32,10 +32,10 @@ def create_db():
     
     cursor.execute('''CREATE TABLE VkInfo (
                             id INTEGER PRIMARY KEY AUTOINCREMENT 
-                            , user_id INTEGER NOT NULL
-                            , vk_link TEXT								
+                            , user_activity_id INTEGER NOT NULL
+                            , vk_link TEXT			
                             , interests TEXT
-                            , FOREIGN KEY (user_id) REFERENCES UserActivity(id)								
+                            , FOREIGN KEY (user_activity_id) REFERENCES UserActivity(id)								
                             )''')
 
     return conn, cursor

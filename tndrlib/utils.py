@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from setting_bot import utils as sut
+from match_bot import utils as mut
 from config import schedule_setting as schedule
 from tndrlib import common as log
 import config
@@ -37,9 +38,12 @@ bmstu_faculty = {
 
 bmstu_degree = ('', 'а', 'б', 'бв','м')
 
-async def error_handling(msg, err, lang, edit_flag=False):
+async def error_handling(msg, err, lang, edit_flag=False, utils_flag="s"):
     log.log_error(err)
-    await sut.error_handling(msg, err, lang, edit_flag)
+    if utils_flag == "s":
+        await sut.error_handling(msg, err, lang, edit_flag)
+    else:
+        await mut.error_handling(msg, err, lang, edit_flag)
 
 def check_bmstu_email(email):
     match = re.match(r'^\w*@student.bmstu.ru$', email)

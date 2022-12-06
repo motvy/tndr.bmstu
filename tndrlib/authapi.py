@@ -114,7 +114,7 @@ class UserApi(AbstractApi):
         AbstractApi.__init__(self, user_id, user_name)
 
         if not authdb.AuthDb(user_id).confirmed_user():
-            raise Exception(mess.tr(self.lang(), 'has_no_login'))
+            raise Exception("Has no login")
        
     def has_profile(self):
         return self.adb.get_profile() and True
@@ -215,4 +215,7 @@ class UserApi(AbstractApi):
     def is_full_profile(self):
         profile, file_name = self.adb.get_profile()
         return ut.is_full_profile(profile)
+
+    def get_confirmed_users(self):
+        return self.adb.get_confirmed_users()
     

@@ -6,7 +6,11 @@ import config
 from tndrlib import messages as mess
 
 async def error_handling(msg, err, lang, edit_flag=False):
-    text = str(err) + '\n' + mess.tr(lang, 'contact_support', config.chat_settings['contact_support'])
+    if "Has no login" in str(err):
+        text = mess.tr(lang, "has_no_login")
+    else:
+        text = str(err) + '\n' + mess.tr(lang, 'contact_support', config.chat_settings['contact_support'])
+
     if edit_flag:
         await msg.edit_text(text=text, parse_mode='markdown', disable_web_page_preview=True, reply_markup=None)
     else:
