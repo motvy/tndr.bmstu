@@ -18,6 +18,7 @@ def create_db():
                             , like_users_id TEXT
                             , dislike_users_id TEXT
                             , report TEXT
+                            , likes_for_me TEXT
                             , UNIQUE (user_id)								
                             )''')
 
@@ -26,8 +27,8 @@ def create_db():
                             , first_user_id INTEGER NOT NULL
                             , second_user_id INTEGER NOT NULL								
                             , categories TEXT
-                            , FOREIGN KEY (first_user_id) REFERENCES UserActivity(id)
-                            , FOREIGN KEY (second_user_id) REFERENCES UserActivity(id)								
+                            , FOREIGN KEY (first_user_id) REFERENCES UserActivity(user_id)
+                            , FOREIGN KEY (second_user_id) REFERENCES UserActivity(user_id)						
                             )''')
     
     cursor.execute('''CREATE TABLE VkInfo (

@@ -30,19 +30,25 @@ class MatchApi(AbstractApi):
     def get_next_profile(self):
         for profile in self.get_all_profiles():
             yield profile
+    
+    def get_next_like_for_me(self):
+        for profile in self.get_all_likes_for_me():
+            yield profile
 
     def get_prev_profile(self):
         pass
 
-    def like_profile(self, profile_id):
+    def like_profile(self, profile_id, need_remove_like=False):
         print("like profile", profile_id)
-        self.mdb.set_like(profile_id)
+        self.mdb.set_like(profile_id, need_remove_like)
+        self.mdb.set_match(profile_id)
 
     def dislike_profile(self, profile_id):
         print("dislike profile", profile_id)
         self.mdb.set_dislike(profile_id)
 
-    def complaint_profile(self, profile_id):
+    def complaint_profile(self, profile_id, need_remove_like=False):
+        self.mdb.set_report(profile_id, need_remove_like)
         print("report profile", profile_id)
 
     def get_all_matches(self):
@@ -53,8 +59,11 @@ class MatchApi(AbstractApi):
 
     def get_all_profiles(self):
         users_arr = self.userapi.get_confirmed_users()
-
         return [(authapi.UserApi(id, None).get_short_profile(need_file_name=True), id) for id in users_arr]
+    
+    def get_all_likes_for_me(self):
+        users_set = self.mdb.get_likes_for_me(self.user_id)
+        return [(authapi.UserApi(id, None).get_short_profile(need_file_name=True), id) for id in users_set]
 
     def show_profile(self):
         return self.userapi.get_short_profile(need_file_name=True)

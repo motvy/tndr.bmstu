@@ -51,7 +51,7 @@ async def menu(message: Message, state: FSMContext, text, lang):
     except Exception as err:
         await lib_ut.error_handling(message, err, lang, utils_flag="m")
 
-async def next_profile(callback: types.CallbackQuery, state: FSMContext):
+async def next_profile(callback: types.CallbackQuery, state: FSMContext, show_fans=False):
     lang = setting_ut.default_lang(callback.message)
     try:
         await callback.answer()
@@ -67,13 +67,17 @@ async def next_profile(callback: types.CallbackQuery, state: FSMContext):
             profiles = setting_ut.decode_fsm(user_date["profiles"])
             # profiles = user_date["profiles"]
         else:
-            profiles = api.get_next_profile()
+            if show_fans:
+                profiles = api.get_next_like_for_me()
+            else:
+                profiles = api.get_next_profile()
 
         try:
             full_profile = next(profiles)
             next_profile = full_profile[0]
         except Exception as err:
-            await menu(callback.message, state, mess.tr(lang, 'profiles_end'), lang)
+            text = mess.tr(lang, 'no_likes') if show_fans else mess.tr(lang, 'profiles_end')
+            await menu(callback.message, state, text, lang)
         else:
             text = next_profile["text"]
 
@@ -98,7 +102,7 @@ async def next_profile(callback: types.CallbackQuery, state: FSMContext):
             message_json = setting_ut.encode_fsm(current_msg)
             current_profile = full_profile[1]
             profiles_json = setting_ut.encode_fsm(profiles)
-            await state.update_data(current_profiles = current_profile, start_msg = message_json, profiles = profiles_json)
+            await state.update_data(current_profiles = current_profile, start_msg = message_json, profiles = profiles_json, show_fans = show_fans)
     except Exception as err:
         await lib_ut.error_handling(callback.message, err, lang, utils_flag="m")
 
@@ -109,9 +113,14 @@ async def swipe_callback(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(text="to_menu_callback")
 async def to_menu_callback(callback: types.CallbackQuery, state: FSMContext):
-    api = matchapi.MatchApi(callback.from_user.id, callback.from_user.first_name)
-    lang = api.lang()
-    await menu(callback.message, state, mess.tr(lang, 'menu_msg'), lang)
+    lang = setting_ut.default_lang(callback.message)
+    try:
+        await callback.answer()
+        api = matchapi.MatchApi(callback.from_user.id, callback.from_user.first_name)
+        lang = api.lang()
+        await menu(callback.message, state, mess.tr(lang, 'menu_msg'), lang)
+    except Exception as err:
+        await lib_ut.error_handling(callback.message, err, lang, utils_flag="m")
 
 @router.callback_query(text="show_fans_callback")
 async def show_fans_callback(callback: types.CallbackQuery, state: FSMContext):
@@ -119,11 +128,12 @@ async def show_fans_callback(callback: types.CallbackQuery, state: FSMContext):
     try:
         await callback.answer()
         await match_ut.check_state(state)
+        await next_profile(callback, state, True)
 
-        current_msg = await callback.message.answer(mess.tr(lang, 'no_likes'), reply_markup=swipe_boards.get_to_menu_keyboard(lang))
+        # current_msg = await callback.message.answer(mess.tr(lang, 'no_likes'), reply_markup=swipe_boards.get_to_menu_keyboard(lang))
 
-        message_json = setting_ut.encode_fsm(current_msg)
-        await state.update_data(start_msg = message_json)
+        # message_json = setting_ut.encode_fsm(current_msg)
+        # await state.update_data(start_msg = message_json)
     except Exception as err:
         await lib_ut.error_handling(callback.message, err, lang, utils_flag="m")
 
@@ -134,7 +144,7 @@ async def show_match_callback(callback: types.CallbackQuery, state: FSMContext):
         await callback.answer()
         await match_ut.check_state(state)
 
-        current_msg = await callback.message.answer(mess.tr(lang, 'no_likes'), reply_markup=swipe_boards.get_to_menu_keyboard(lang))
+        current_msg = await callback.message.answer(mess.tr(lang, 'fuck_you'), reply_markup=swipe_boards.get_to_menu_keyboard(lang))
 
         message_json = setting_ut.encode_fsm(current_msg)
         await state.update_data(start_msg = message_json)
@@ -180,11 +190,12 @@ async def like_callback(callback: types.CallbackQuery, state: FSMContext):
 
     user_date = await state.get_data()
     current_profile = user_date['current_profiles']
+    need_remove_like = user_date['show_fans']
 
     api = matchapi.MatchApi(callback.from_user.id, callback.from_user.first_name)
-    api.like_profile(current_profile)
+    api.like_profile(current_profile, need_remove_like)
 
-    await next_profile(callback, state)
+    await next_profile(callback, state, need_remove_like)
 
 @router.callback_query(text="dislike_callback")
 async def dislike_callback(callback: types.CallbackQuery, state: FSMContext):
@@ -192,11 +203,12 @@ async def dislike_callback(callback: types.CallbackQuery, state: FSMContext):
 
     user_date = await state.get_data()
     current_profile = user_date['current_profiles']
+    need_remove_like = user_date['show_fans']
 
     api = matchapi.MatchApi(callback.from_user.id, callback.from_user.first_name)
     api.dislike_profile(current_profile)
 
-    await next_profile(callback, state)
+    await next_profile(callback, state, need_remove_like)
 
 @router.callback_query(text="complained_callback")
 async def complained_callback(callback: types.CallbackQuery, state: FSMContext):
@@ -204,8 +216,9 @@ async def complained_callback(callback: types.CallbackQuery, state: FSMContext):
 
     user_date = await state.get_data()
     current_profile = user_date['current_profiles']
+    need_remove_like = user_date['show_fans']
 
     api = matchapi.MatchApi(callback.from_user.id, callback.from_user.first_name)
-    api.complaint_profile(current_profile)
+    api.complaint_profile(current_profile, need_remove_like)
 
-    await next_profile(callback, state)
+    await next_profile(callback, state, need_remove_like)
