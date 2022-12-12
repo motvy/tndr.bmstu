@@ -40,7 +40,6 @@ async def cmd_login(message: Message, state: FSMContext):
         msg_json = bot_ut.encode_fsm(msg)
         current_msg = {'msg': msg_json, 'new_text': mess.tr(lang, 'canceled_login')}
         await state.update_data(current_msg=current_msg)
-        # print(msg.message_id, msg.chat.id)
         await state.set_state(Login.waiting_email)
     except Exception as err:
         print(err)

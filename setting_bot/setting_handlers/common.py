@@ -5,11 +5,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram import types
 
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-
 from tndrlib import messages as mess
 from tndrlib import authapi as botapi
-from tndrlib import meetapi
 from tndrlib import utils as lib_ut
 from setting_keyboards import common_boards
 from setting_bot import utils as bot_ut
@@ -17,19 +14,9 @@ import config
 
 from . import profile
 
-
 router = Router()
 
-
-# @router.message(Command(commands=["start"]))
-# async def cmd_start(message: Message, state: FSMContext):
-#     await bot_ut.check_state(state)
-#     await state.clear()
-#     lang = bot_ut.default_lang(message)
-#     await message.answer(text=mess.tr(lang, 'start_msg'))
-
 @router.message(Command(commands=["cancel"]))
-# @router.message(Text(text="отмена", text_ignore_case=True))
 async def cmd_cancel(message: Message, state: FSMContext):
     user_data = await state.get_data()
     if not user_data:
@@ -47,14 +34,12 @@ async def cmd_cancel(message: Message, state: FSMContext):
     else:
         profile_msg = None
 
-    await state.clear()
     if profile_msg is not None:
         await current_msg.delete()
         await message.delete()
         await state.update_data(profile_msg=profile_msg, reply_markup=keyboard, caption=caption)
     else:
         await current_msg.edit_text(text=new_text)
-    # await message.answer(text="Действие отменено")
 
 @router.message(Command(commands=["help"]))
 async def cmd_help(message: Message, state: FSMContext):

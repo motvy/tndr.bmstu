@@ -1,6 +1,3 @@
-import os
-import jsonpickle
-
 from aiogram import Router
 from aiogram import Bot
 
@@ -13,7 +10,6 @@ from aiogram.methods import edit_message_media
 
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from tndrlib import authapi as botapi
 from tndrlib import utils as lib_ut
@@ -82,7 +78,6 @@ async def to_menu_callback(callback: types.CallbackQuery, state: FSMContext):
     except Exception as err:
         await lib_ut.error_handling(callback.message, err, lang)
 
-# @router.message(commands=["profile"])
 @router.callback_query(text="my_profile_callback")
 async def cmd_profile(callback: types.CallbackQuery, state: FSMContext):
     lang = bot_ut.default_lang(callback.message)
@@ -542,8 +537,6 @@ async def set_name(message, state: FSMContext):
         lang = api.lang()
 
         name = message.text.strip()
-        # text = mess.tr(lang, 'incorrect_name') if 'after_error' in user_data else mess.tr(lang, 'ask_name')
-        # await current_msg.edit_text(text=text)
         api.set_name(name)
 
         try:
@@ -591,8 +584,6 @@ async def set_date_of_birth(message, state: FSMContext):
         lang = api.lang()
 
         date = message.text.strip()
-        # text = mess.tr(lang, 'incorrect_date') if 'after_error' in user_data else mess.tr(lang, 'ask_date_of_birth')
-        # await current_msg.edit_text(text=text)
         api.set_date_of_birth(date)
 
         try:
@@ -698,7 +689,6 @@ async def set_about(message, state: FSMContext):
         lang = api.lang()
 
         about = message.text.strip()
-        # text = mess.tr(lang, 'incorrect_about', '', '') if 'after_error' in user_data else mess.tr(lang, 'ask_about')
         text = mess.tr(lang, 'ask_about')
         await current_msg.edit_text(text=text)
         api.set_about(about)
@@ -749,8 +739,6 @@ async def set_vk_link(message, state: FSMContext):
         lang = api.lang()
 
         vk_link = message.text.strip()
-        # text = mess.tr(lang, 'incorrect_name') if 'after_error' in user_data else mess.tr(lang, 'ask_name')
-        # await current_msg.edit_text(text=text)
         api.set_vk_link(vk_link)
 
         try:
@@ -816,8 +804,6 @@ async def set_study_group(message, state: FSMContext):
         lang = api.lang()
 
         study_group = message.text.strip()
-        # text = mess.tr(lang, 'incorrect_name') if 'after_error' in user_data else mess.tr(lang, 'ask_name')
-        # await current_msg.edit_text(text=text)
         api.set_study_group(study_group)
 
         try:

@@ -70,7 +70,8 @@ def create_db():
     cursor.execute('''CREATE TABLE faculties (
                             id INTEGER PRIMARY KEY AUTOINCREMENT 								
                             , faculty_name TEXT
-                            , info TEXT
+                            , address TEXT
+                            , centre TEXT
                             , UNIQUE (faculty_name)				
                             )''')
 
@@ -82,6 +83,7 @@ def create_db():
                             , redius TEXT
                             , tags TEXT
                             , free_time TEXT
+                            , info TEXT
                             , FOREIGN KEY (user_id) REFERENCES users (user_id)
                             , FOREIGN KEY (second_user_id) REFERENCES users (user_id)
                             )''')
@@ -110,6 +112,16 @@ def set_schedule(conn, cursor):
             cursor.execute("insert into groups (faculty_id, group_name, schedule, free_time) values (?, ?, ?, ?)", (faculty_id, group, schedule_txt, free_time_txt))
         
         conn.commit()
+
+    set_address(conn, cursor)
+
+def set_address(conn, cursor):
+    cursor.execute("update faculties set address = '{}', centre = '{}' where faculty_name='ИУК' or faculty_name='МК'".format("Баженова 2, Калуга", "54.508676, 36.248576"))
+    conn.commit()
+    cursor.execute("update faculties set address = '{}', centre = '{}' where faculty_name='К' or faculty_name='ЛТ'".format("1-я Институтская улица, 1, Мытищи", "55.927800, 37.792968"))
+    conn.commit()
+    cursor.execute("update faculties set address = '{}', centre = '{}' where address is NULL".format("2-я Бауманская улица, Москва", "55.766380, 37.683356"))
+    conn.commit()
 
 
 def parse_schedule():

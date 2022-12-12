@@ -9,7 +9,6 @@ from . import messages as mess
 
 import config
 
-from threading import Timer
 import smtplib
 import random
 
@@ -43,14 +42,12 @@ class AuthApi(AbstractApi):
         email = ut.check_bmstu_email(email)
         if email:
             self.adb.set_email(email)
-            # self.verify(email)
         else:
             raise Exception('Invalid email')
 
     def has_email(self):
         email = self.adb.get_email()
-        return email
-            # raise Exception(mess.tr(self.lang(), 'question_code_invalid'))        
+        return email       
 
     def verify(self):
         
@@ -79,12 +76,6 @@ class AuthApi(AbstractApi):
         smtpObj.sendmail(login, email, message.as_string())
 
         return email
-
-        # timer = Timer(20.0, self.reset_timer())
-        # self.current_thread = timer
-        # timer.start()
-        # print("qqqqqqqqqqqqqqqqqqqqqqqq")
-        # return True
     
     def reset_timer(self):
         if self.current_thread:

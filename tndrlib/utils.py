@@ -5,6 +5,7 @@ from match_bot import utils as mut
 from config import schedule_setting as schedule
 from tndrlib import common as log
 import config
+
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
@@ -80,6 +81,14 @@ def profile_turple_to_dict(user_turple, group_name, photo_tg_id):
         }
     return user_dict, user_turple[4]
 
+def places_info_to_dict(info):
+    return {
+        'centre': info[0],
+        'radius': info[1],
+        'tags': info[2],
+        'info': info[3],
+    }
+
 def is_full_profile(profile):
     if profile is None:
         return False
@@ -125,8 +134,8 @@ def joint_time(free_time_1, free_time_2):
     joint_time = {}
     for day in free_time_1:
         joint_time[day] = {
-            'numerator': list(set(free_time_1[day]['numerator']) & set(free_time_2[day]['numerator'])),
-            'denominator': list(set(free_time_1[day]['denominator']) & set(free_time_2[day]['denominator'])),
+            'numerator': sorted(list(set(free_time_1[day]['numerator']) & set(free_time_2[day]['numerator']))),
+            'denominator': sorted(list(set(free_time_1[day]['denominator']) & set(free_time_2[day]['denominator']))),
         }
 
     joint_time_str = json.dumps(joint_time)
@@ -137,10 +146,47 @@ def joint_tags(tags_1, tags_2):
     return set(tags_1) & set(tags_2)
 
 def format_schedule(schedule):
-    return str(schedule)
+    if schedule == {}:
+        raise Exception("No info")
+
+    result = ""
+    for day in schedule:
+        current = ""
+        for time in schedule[day]:
+            study_num = schedule[day][time]['numerator']
+            study_denom = schedule[day][time]['denominator']
+            if study_num == '' and study_denom == '':
+                continue
+            else:
+                current += f"<u>{time}</u>\n"
+                if study_num != '': current += f"   ЧС: <i>{study_num}</i>\n"
+                if study_denom != '': current += f"   ЗН: <i>{study_denom}</i>\n"
+        
+        if current != '': result += f"<b>{day}</b>\n{current}\n"
+    
+    return result
 
 def format_free_time(free_time):
-    return str(free_time)
+    if free_time == {}:
+        raise Exception("No info")
+
+    result = ""
+    for day in free_time:
+        time_num = free_time[day]['numerator']
+        time_denom = free_time[day]['denominator']
+        if time_num == [] and time_num == []:
+            continue
+        else:
+            result += f"<b>{day}</b>\n"
+            if time_num != []: result += f"<u>ЧС:</u> <i>{' • '.join(time_num)}</i>\n"
+            if time_denom != []: result += f"<u>ЗН:</u> <i>{' • '.join(time_denom)}</i>\n"
+            result += "\n"
+
+    return result
+
+def format_place(place):
+    return place['name'] + "\n" + place["address_name"]
+
 
 def log_init(logger_name):	
     logger_file_name = config.log_path + f"/{logger_name}.log.txt"
@@ -158,4 +204,13 @@ def log_init(logger_name):
     logger.addHandler(fileHandler)
     logger.addHandler(streamHandler) 
 
+def get_centre(centre):
+    return centre
 
+def get_radius(radius):
+    try:
+        r = int(radius)
+    except Exception:
+        return None
+    else:
+        return r if 1000 <= r <= 20000 else None

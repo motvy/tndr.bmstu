@@ -179,9 +179,21 @@ class AuthDb():
         users = self.cursor.fetchall()
 
         return [user[0] for user in users]
+    
+    def get_address(self, user_id):
+        self.cursor.execute("select f.address, f.centre from faculties f, groups g, profiles p, users u where u.user_id = '{}' and u.id = p.auth_id and p.group_id = g.id and g.faculty_id = f.id".format(user_id))
+        return self.cursor.fetchone()
 
-    def set_matches(self, second_user_id, centre, radius, tags, free_time):
-        self.cursor.execute("insert into matches (user_id, second_user_id, centre, radius, tags, free_time) values (?, ?, ?, ?, ?, ?)", (self.user_id, second_user_id, centre, radius, tags, free_time))
+
+    def set_matches(self, second_user_id, centre, radius, tags, free_time, address_info):
+        self.cursor.execute("select id from matches where user_id = '{}' and second_user_id = '{}'".format(self.user_id, second_user_id))
+        info = self.cursor.fetchone()
+
+        if info is None:
+            self.cursor.execute("insert into matches (user_id, second_user_id, centre, radius, tags, free_time, info) values (?, ?, ?, ?, ?, ?, ?)", (self.user_id, second_user_id, centre, radius, tags, free_time, address_info))
+        else:
+            id = info[0]
+            self.cursor.execute("update matches set centre = '{}', radius = '{}', tags = '{}', free_time = '{}', info = '{}' where id = '{}'".format(centre, radius, tags, free_time, address_info, id))
         self.conn.commit()
 
     def get_joint_time(self, second_user_id):
@@ -193,3 +205,20 @@ class AuthDb():
         self.cursor.execute("select tags from matches where user_id = '{}' and second_user_id = '{}'".format(self.user_id, second_user_id))
         info = self.cursor.fetchone()[0]
         return info.split(' • ')
+
+    def get_places_info(self, second_user_id):
+        self.cursor.execute("select centre, radius, tags, info from matches where user_id = '{}' and second_user_id = '{}'".format(self.user_id, second_user_id))
+        info = self.cursor.fetchone()
+        return ut.places_info_to_dict(info)
+
+    def set_centre(self, second_user_id, centre):
+        self.cursor.execute("update matches set centre = '{}', info='' where user_id = '{}' and second_user_id = '{}'".format(centre, self.user_id, second_user_id))
+        self.conn.commit()
+
+    def set_radius(self, second_user_id, radius):
+        self.cursor.execute("update matches set radius = '{}' where user_id = '{}' and second_user_id = '{}'".format(radius, self.user_id, second_user_id))
+        self.conn.commit()
+
+    def set_match_tags(self, second_user_id, tags):
+        self.cursor.execute("update matches set tags = '{}' where user_id = '{}' and second_user_id = '{}'".format(tags, self.user_id, second_user_id))
+        self.conn.commit()

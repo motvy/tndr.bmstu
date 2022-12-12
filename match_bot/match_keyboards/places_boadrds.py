@@ -57,16 +57,16 @@ HIDE_KEYBOARD_RU = InlineKeyboardMarkup(
 EDIT_PLACES_KEYBOARD_EN = InlineKeyboardMarkup(
     inline_keyboard = [
                     [
-                        InlineKeyboardButton(text=mess.tr(1, 'get_place'), callback_data="empty_callback"),
+                        InlineKeyboardButton(text=mess.tr(1, 'get_place'), callback_data="show_place_callback"),
                     ],
                     [
-                        InlineKeyboardButton(text=mess.tr(1, 'edit_centre'), callback_data="empty_callback"),
+                        InlineKeyboardButton(text=mess.tr(1, 'edit_centre'), callback_data="edit_centre_callback"),
                     ],
                     [
-                        InlineKeyboardButton(text=mess.tr(1, 'edit_radius'), callback_data="empty_callback"),
+                        InlineKeyboardButton(text=mess.tr(1, 'edit_radius'), callback_data="edit_radius_callback"),
                     ],
                     [
-                        InlineKeyboardButton(text=mess.tr(1, 'edit_tags'), callback_data="empty_callback"),
+                        InlineKeyboardButton(text=mess.tr(1, 'edit_tags'), callback_data="tags_callback"),
                     ],
                     [
                         InlineKeyboardButton(text=mess.tr(1, 'back_btn'), callback_data="back_to_places_menu_callback"),
@@ -77,16 +77,16 @@ EDIT_PLACES_KEYBOARD_EN = InlineKeyboardMarkup(
 EDIT_PLACES_KEYBOARD_RU = InlineKeyboardMarkup(
     inline_keyboard = [
                     [
-                        InlineKeyboardButton(text=mess.tr(2, 'get_place'), callback_data="empty_callback"),
+                        InlineKeyboardButton(text=mess.tr(2, 'get_place'), callback_data="show_place_callback"),
                     ],       
                     [
-                        InlineKeyboardButton(text=mess.tr(2, 'edit_centre'), callback_data="empty_callback"),
+                        InlineKeyboardButton(text=mess.tr(2, 'edit_centre'), callback_data="edit_centre_callback"),
                     ],
                     [
-                        InlineKeyboardButton(text=mess.tr(2, 'edit_radius'), callback_data="empty_callback"),
+                        InlineKeyboardButton(text=mess.tr(2, 'edit_radius'), callback_data="edit_radius_callback"),
                     ],
                     [
-                        InlineKeyboardButton(text=mess.tr(2, 'edit_tags'), callback_data="empty_callback"),
+                        InlineKeyboardButton(text=mess.tr(2, 'edit_tags'), callback_data="tags_callback"),
                     ],
                     [
                         InlineKeyboardButton(text=mess.tr(2, 'back_btn'), callback_data="back_to_places_menu_callback"),
@@ -102,3 +102,33 @@ def get_hide_keyboard(lang):
 
 def get_edit_places_keyboard(lang):
     return EDIT_PLACES_KEYBOARD_EN if lang == 1 else EDIT_PLACES_KEYBOARD_RU
+
+def get_swipe_places_keyboard(lang, link):
+    SWIPE_PLACES_KEYBOARD = InlineKeyboardMarkup(
+        inline_keyboard = [
+                        [
+                            InlineKeyboardButton(text=mess.tr(lang, 'to_place'), url=link),
+                        ],
+                        [
+                            InlineKeyboardButton(text="◀️", callback_data="prev_place_callback"),
+                            InlineKeyboardButton(text="▶️", callback_data="next_place_callback")
+                        ],
+                        [
+                            InlineKeyboardButton(text=mess.tr(lang, 'to_menu_btn'), callback_data="to_edit_place_menu_callback"),
+                        ],
+                    ]
+    )
+    return SWIPE_PLACES_KEYBOARD
+
+def get_swipe_places_alone_keyboard(lang, link):
+    SWIPE_PLACES_KEYBOARD = InlineKeyboardMarkup(
+        inline_keyboard = [
+                        [
+                            InlineKeyboardButton(text=mess.tr(lang, 'to_place'), url=link),
+                        ],
+                        [
+                            InlineKeyboardButton(text=mess.tr(lang, 'to_menu_btn'), callback_data="to_edit_place_menu_callback"),
+                        ],
+                    ]
+    )
+    return SWIPE_PLACES_KEYBOARD

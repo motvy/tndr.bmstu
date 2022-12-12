@@ -9,24 +9,29 @@ match_bot_settings = {
 }
 
 store_settings = {
-    'adb_path': '',
-    'mdb_path': '',
-    'file_store_path': '',
-    'log_path': '',
-    'no_avatar_path': '',
+    'adb_path': r"C:\Users\79190\Desktop\kur\botdb\authdb.db",
+    'mdb_path': r"C:\Users\79190\Desktop\kur\botdb\matchdb.db",
+    'file_store_path': r'C:\Users\79190\Desktop\kur\files\{}.png',
+    'log_path': r'C:\Users\79190\Desktop\kur\files',
+    'no_avatar_path': r'C:\Users\79190\Desktop\kur\files\photo_2022-11-16_17-25-58.jpg'
 }
 
 schedule_setting = {
     'schedule_link' : 'https://lks.bmstu.ru/schedule/list',
-    'groups_path': '',
-    'schedule_path': '',
+    'groups_path': r'C:\Users\79190\Desktop\kur\botdb\groups.txt',
+    'schedule_path': r'C:\Users\79190\Desktop\kur\botdb\schedule.txt',
 }
 
 chat_settings = {
     'swipe_bot_link': r'https://t.me/TEST_TNDR_BOT',
+    'setting_bot_link': r'https://t.me/bmstu_tndr_settings_bot',
     'contact_support': r'https://t.me/daniilpodruchnyi',
+    'user_link': r'https://t.me/{}',
 }
 
 admin_settings = {
     'admins_id': ['399795640', '532578264'],
 }
+
+default_req = 'https://catalog.api.2gis.com/3.0/items?q={}&type=branch&point={}%2C{}&radius={}&key={}'
+two_gis_link = 'https://2gis.ru/geo/{}/{},{}'
