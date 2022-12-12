@@ -12,6 +12,8 @@ from tndrlib import utils as lib_ut
 from setting_bot import utils as bot_ut
 from tndrlib import messages as mess
 
+from . import profile
+
 router = Router()
 
 class Login(StatesGroup):
@@ -135,17 +137,17 @@ async def code_query(message, state: FSMContext):
     except Exception as err:
         await state.clear()
         await lib_ut.error_handling(message, err, lang)
-
-@router.message(commands=["delete"])
-async def cmd_delete(message: Message, state: FSMContext):
-    lang = bot_ut.default_lang(message)
+    
+@router.callback_query(text="delete_profile_callback")
+async def delete_account(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback.message)
     try:
         await bot_ut.check_state(state)
-        api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
+        api = botapi.AuthApi(callback.from_user.id, callback.from_user.first_name)
         lang = api.lang()
 
         if not api.has_confirm():
-            await message.answer(mess.tr(lang, 'user_for _delete_not_found'))
+            await callback.message.answer(mess.tr(lang, 'user_for_delete_not_found'))
             return
 
         builder = InlineKeyboardBuilder()
@@ -161,27 +163,31 @@ async def cmd_delete(message: Message, state: FSMContext):
                 callback_data="delete_callback_no"
             )
         )
-        await message.answer(
+        msg = await callback.message.answer(
             mess.tr(lang, 'question_delete_account'),
             reply_markup=builder.as_markup(),
 
         )
 
+        message_json = bot_ut.encode_fsm(msg)
+        await state.update_data(current_msg = {'msg': message_json})
+
     except Exception as err:
         await state.clear()
-        await lib_ut.error_handling(message, err, lang)
+        await lib_ut.error_handling(callback.message, err, lang)
         raise err
 
 @router.callback_query(Text(text_startswith="delete_callback_"))
-async def delete_account(callback: types.CallbackQuery):
+async def delete_account(callback: types.CallbackQuery, state: FSMContext):
     try:
         api = botapi.AuthApi(callback.from_user.id, callback.from_user.first_name)
         lang = api.lang()
         if 'yes' in callback.data:
             api.reset_confirm()
             text = mess.tr(lang, 'delete_success')
+            await callback.message.edit_text(text=text, reply_markup=None)
         else:
             text = mess.tr(lang, 'delete_canceled')
-        await callback.message.edit_text(text=text, reply_markup=None)
+            await profile.menu(callback.message, state, text, lang)
     except Exception as err:
         await lib_ut.error_handling(callback.message, err, lang, edit_flag=True)

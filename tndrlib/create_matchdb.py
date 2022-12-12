@@ -27,8 +27,15 @@ def create_db():
                             , first_user_id INTEGER NOT NULL
                             , second_user_id INTEGER NOT NULL								
                             , categories TEXT
+                            , status INTEGER NOT NULL DEFAULT 1
+                            /*
+                                Bits:
+                                0 - hide match										
+                                1 - active match												
+                            */
                             , FOREIGN KEY (first_user_id) REFERENCES UserActivity(user_id)
-                            , FOREIGN KEY (second_user_id) REFERENCES UserActivity(user_id)						
+                            , FOREIGN KEY (second_user_id) REFERENCES UserActivity(user_id)
+                            , UNIQUE (first_user_id, second_user_id)					
                             )''')
     
     cursor.execute('''CREATE TABLE VkInfo (

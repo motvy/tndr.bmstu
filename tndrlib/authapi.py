@@ -218,4 +218,8 @@ class UserApi(AbstractApi):
 
     def get_confirmed_users(self):
         return self.adb.get_confirmed_users()
-    
+
+
+
+        
+

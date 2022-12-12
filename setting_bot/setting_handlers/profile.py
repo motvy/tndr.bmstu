@@ -18,7 +18,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from tndrlib import authapi as botapi
 from tndrlib import utils as lib_ut
 from setting_bot import utils as bot_ut
-from setting_keyboards import profile_boards
+from setting_keyboards import profile_boards, common_boards
 from tndrlib import messages as mess
 
 import config
@@ -37,12 +37,58 @@ class Profile(StatesGroup):
     waiting_vk_link = State()
     waiting_tags = State()
 
-@router.message(commands=["profile"])
-async def cmd_profile(message: Message, state: FSMContext):
+@router.message(commands=["menu"])
+async def cmd_menu(message: Message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         await bot_ut.check_state(state)
         api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
+        lang = api.lang()
+
+        await menu(message, state, mess.tr(lang, 'menu_msg'), lang)
+    except Exception as err:
+        await lib_ut.error_handling(message, err, lang, utils_flag="m")
+
+
+async def menu(message: Message, state: FSMContext, text, lang):
+    try:
+        await bot_ut.check_state(state)
+        await state.clear()
+
+        current_msg = await message.answer(
+                text=text,
+                reply_markup=common_boards.get_menu_keyboard(lang)
+            )
+
+        message_json = bot_ut.encode_fsm(current_msg)
+        await state.update_data(current_msg= {'msg': message_json})
+    except Exception as err:
+        await lib_ut.error_handling(message, err, lang)
+
+@router.callback_query(text="to_menu_callback")
+async def to_menu_callback(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback.message)
+    try:
+        user_data = await state.get_data()
+        await callback.answer()
+        if 'profile_msg' in user_data:
+            await state.update_data(for_del_msg = user_data['profile_msg'])
+        await bot_ut.check_state(state)
+        await state.clear()
+        api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+        lang = api.lang()
+
+        await menu(callback.message, state, mess.tr(lang, 'menu_msg'), lang)
+    except Exception as err:
+        await lib_ut.error_handling(callback.message, err, lang)
+
+# @router.message(commands=["profile"])
+@router.callback_query(text="my_profile_callback")
+async def cmd_profile(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback.message)
+    try:
+        await bot_ut.check_state(state)
+        api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
         lang = api.lang()
 
         profile_info = api.get_full_profile()
@@ -58,7 +104,7 @@ async def cmd_profile(message: Message, state: FSMContext):
 
         keyboard = profile_boards.get_profile_edit_keyboard(lang)
         
-        current_message = await message.answer_photo(
+        current_message = await callback.message.answer_photo(
             photo=photo,
             caption=text,
             reply_markup=keyboard,
@@ -70,7 +116,7 @@ async def cmd_profile(message: Message, state: FSMContext):
 
     except Exception as err:
         await state.clear()
-        await lib_ut.error_handling(message, err, lang)
+        await lib_ut.error_handling(callback.message, err, lang)
 
 @router.callback_query(text="name_callback")
 async def name_callback(callback: types.CallbackQuery, state: FSMContext):
@@ -806,3 +852,4 @@ async def set_study_group(message, state: FSMContext):
 @router.callback_query(Text(text_startswith="empty_callback"))
 async def empty_callback(callback: types.CallbackQuery):
     await callback.answer()
+

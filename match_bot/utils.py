@@ -32,6 +32,6 @@ async def check_state(state):
             await start_msg.delete()
         except Exception as err:
             if "message to delete not found" in str(err):
-                pass
+                print("!!!!!!!!!!!!!!!!!!!!!!!!!")
             else:
                 raise err

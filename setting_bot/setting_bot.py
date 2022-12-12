@@ -15,11 +15,12 @@ import config
 from setting_handlers import common, login, profile
 
 from tndrlib import common as log
+from tndrlib.conn import Database
 
+bot = Bot(token=config.settings_bot_settings['TOKEN'])
 
 # Запуск бота
 async def main():
-    bot = Bot(token=config.settings_bot_settings['TOKEN'])
 
     redis = Redis()
 
@@ -36,6 +37,9 @@ async def main():
 
     # Запускаем бота и пропускаем все накопленные входящие
     await bot.delete_webhook(drop_pending_updates=True)
+
+    Database().connect_authdb()
+
     log.log_info('Start settings bot')
     await dp.start_polling(bot)
 

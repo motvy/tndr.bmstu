@@ -12,32 +12,6 @@ from datetime import date
 import re
 import json
 
-bmstu_faculty = {
-    'ак': ('1', '2', '3', '4'),
-    'бмт': ('1', '2', '3', '4', '5'),
-    'ибм': ('1', '2', '3', '4', '5', '6', '7'),
-    'исот': ('', '1', '2'),
-    'иу': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'),
-    'иук': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10'),
-    'к': ('1', '2', '3', '4', '5', '6', '7'),
-    'л': ('1', '2', '3', '4'),
-    'лт': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10'), 
-    'мк': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10'),
-    'мт': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'),
-    'оэ': ('1', '2'),
-    'пс': ('1', '2', '3', '4'),
-    'рк': ('1', '2', '3', '4', '5', '6', '7', '8', '9'),
-    'ркт': ('1', '2', '3', '4', '5'),
-    'рт': ('1', '2', '3', '4', '5'),
-    'сгн': ('1', '2', '3', '4'),
-    'см': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'),
-    'фн': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'), 
-    'э': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10'),
-    'юр': ('', '1', '2', '3'),
-}
-
-bmstu_degree = ('', 'а', 'б', 'бв','м')
-
 async def error_handling(msg, err, lang, edit_flag=False, utils_flag="s"):
     log.log_error(err)
     if utils_flag == "s":
@@ -76,31 +50,6 @@ def check_study_group(study_group):
                 return True
 
     return False
-
-
-
-    # match = re.match(r'^([^\W\d_]+)(\d*)-(\d{2})([^\W\d_]*)$', study_group)
-    # if not match:
-    #     return False
-
-    # faculty = match.group(1)
-    # faculty_num = match.group(2)
-    # group = match.group(3)
-    # degree = match.group(4)
-    # correct_flag = False
-    # if faculty in bmstu_faculty and degree in bmstu_degree and faculty_num in bmstu_faculty[faculty]:
-    #     sem = int(group[0])
-    #     group_num = int(group[1])
-    #     month_today = date.today().month
-    #     if 2 <= month_today <= 7:
-    #         if sem > 0 and sem % 2 == 0 and group_num > 0:
-    #             correct_flag = True
-    #     else:
-    #         if sem > 0 and sem % 2 == 1 and group_num > 0:
-    #             correct_flag = True
-    
-    # return correct_flag
-
 
 def user_turple_to_dict(user_turple):
     if user_turple is None or len(user_turple) == 0:
@@ -176,11 +125,22 @@ def joint_time(free_time_1, free_time_2):
     joint_time = {}
     for day in free_time_1:
         joint_time[day] = {
-            'numerator': set(free_time_1[day]['numerator']) & set(free_time_2[day]['numerator']),
-            'denominator': set(free_time_1[day]['denominator']) & set(free_time_2[day]['denominator']),
+            'numerator': list(set(free_time_1[day]['numerator']) & set(free_time_2[day]['numerator'])),
+            'denominator': list(set(free_time_1[day]['denominator']) & set(free_time_2[day]['denominator'])),
         }
 
-    return joint_time
+    joint_time_str = json.dumps(joint_time)
+
+    return joint_time_str
+
+def joint_tags(tags_1, tags_2):
+    return set(tags_1) & set(tags_2)
+
+def format_schedule(schedule):
+    return str(schedule)
+
+def format_free_time(free_time):
+    return str(free_time)
 
 def log_init(logger_name):	
     logger_file_name = config.log_path + f"/{logger_name}.log.txt"

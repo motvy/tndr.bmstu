@@ -15,6 +15,8 @@ from setting_keyboards import common_boards
 from setting_bot import utils as bot_ut
 import config
 
+from . import profile
+
 
 router = Router()
 
@@ -67,21 +69,25 @@ async def cmd_help(message: Message, state: FSMContext):
         await lib_ut.error_handling(message, err, lang)
 
 
-# @router.message(Command(commands=["about"]))
-# async def cmd_about(message: Message, state: FSMContext):
-#     lang = bot_ut.default_lang(message)
-#     try:
-#         await bot_ut.check_state(state)
-#         api = botapi.AuthApi(message.from_user.id, message.from_user.first_name)
-#         lang = api.lang()
+@router.callback_query(text="swipe_callback")
+async def swipe_callback(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback.message)
+    try:
+        await bot_ut.check_state(state)
+        api = botapi.UserApi(callback.from_user.id, callback.from_user.first_name)
+        lang = api.lang()
 
-#         await message.answer(text=mess.tr(lang, 'about'))
-#     except Exception as err:
-#         await lib_ut.error_handling(message, err, lang)
+        if api.is_full_profile():
+            keyboard = common_boards.get_swipe_keyboard(lang)
+            msg = await callback.message.answer(text=mess.tr(lang, 'go_swipe'), parse_mode='markdown', disable_web_page_preview=True, reply_markup=keyboard)
+            message_json = bot_ut.encode_fsm(msg)
+            await state.update_data(current_msg= {'msg': message_json})
+        else:
+            await profile.menu(callback.message, state, mess.tr(lang, 'not_full_profile'))
+    except Exception as err:
+        await lib_ut.error_handling(callback.message, err, lang)
 
-
-@router.message(commands=["lang"])
-async def cmd_delete(message: Message, state: FSMContext):
+async def cmd_lang(message: Message, state: FSMContext):
     lang = bot_ut.default_lang(message)
     try:
         await bot_ut.check_state(state)
@@ -99,37 +105,46 @@ async def cmd_delete(message: Message, state: FSMContext):
         await lib_ut.error_handling(message, err, lang)
         raise err
 
+@router.callback_query(text="lang_callback")
+async def lang_callback(callback: types.CallbackQuery, state: FSMContext):
+    lang = bot_ut.default_lang(callback.message)
+    try:
+        await callback.answer()
+        await bot_ut.check_state(state)
+
+        api = botapi.AuthApi(callback.from_user.id, callback.from_user.first_name)
+        lang = api.lang()
+
+        msg = await callback.message.answer(
+            mess.tr(lang, 'lang_question'),
+            reply_markup=common_boards.LANG_KEYBOARD
+        )
+
+        message_json = bot_ut.encode_fsm(msg)
+        await state.update_data(current_msg = {'msg': message_json})
+
+    except Exception as err:
+        await lib_ut.error_handling(callback.message, err, lang)
+
+
 @router.callback_query(Text(text_startswith="lang_callback_"))
-async def delete_account(callback: types.CallbackQuery):
+async def delete_account(callback: types.CallbackQuery, state: FSMContext):
     try:
         api = botapi.AuthApi(callback.from_user.id, callback.from_user.first_name)
         lang = api.lang()
         if 'ru' in callback.data:
             text = mess.tr(lang, 'select_ru_lang')
             api.set_lang(2)
+            new_lang = 2
         else:
             text = mess.tr(lang, 'select_en_lang')
             api.set_lang(1)
-        await callback.message.edit_text(text=text, reply_markup=None)
+            new_lang = 1
+
+        await profile.menu(callback.message, state, text, new_lang)
+
     except Exception as err:
         await lib_ut.error_handling(callback.message, err, lang, edit_flag=True)
-
-@router.message(Command(commands=["swipe"]))
-async def cmd_swipe(message: Message, state: FSMContext):
-    lang = bot_ut.default_lang(message)
-    try:
-        await bot_ut.check_state(state)
-        api = botapi.UserApi(message.from_user.id, message.from_user.first_name)
-        lang = api.lang()
-
-        if api.is_full_profile():
-            keyboard = common_boards.get_swipe_keyboard(lang)
-
-            message = await message.answer(text=mess.tr(lang, 'go_swipe'), parse_mode='markdown', disable_web_page_preview=True, reply_markup=keyboard)
-        else:
-            await message.answer(text=mess.tr(lang, 'not_full_profile'))
-    except Exception as err:
-        await lib_ut.error_handling(message, err, lang)
 
 
 @router.message(Command(commands=["admin"]))

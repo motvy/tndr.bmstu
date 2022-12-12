@@ -5,6 +5,7 @@ from tndrlib import utils as ut
 from tndrlib import createdb
 from tndrlib import common as log
 from tndrlib import matchdb
+from tndrlib.conn import Database
 
 import os
 import sqlite3
@@ -12,27 +13,7 @@ import sqlite3
 class AuthDb():
     def __init__(self, user_id):
         self.user_id = str(user_id)
-
-        db_path = config.store_settings['adb_path']
-        if not db_path:
-            raise Exception('Path authdb is empty. See config')	
-
-        if not os.path.exists(os.path.dirname(db_path)):
-            os.makedirs(os.path.dirname(db_path))
-        
-        self.conn = None
-        if os.path.exists(db_path):
-
-            log.log_info(f'Connect cache db {db_path}')
-
-            self.conn = sqlite3.connect(db_path)
-            self.cursor = self.conn.cursor()
-
-        else:
-            log.log_info(f'Create bot db {db_path}')
-
-            self.conn, self.cursor = createdb.create_db()
-
+        self.conn , self.cursor = Database().connect_authdb()
         self.mdb = matchdb.MatchDb(self.user_id)
 
 
@@ -177,8 +158,19 @@ class AuthDb():
         self.cursor.execute("update profiles set tags='{}' from users where users.user_id={} and profiles.auth_id=users.id".format(tags, self.user_id))
         self.conn.commit()
 
-    def get_free_time(self):
-        self.cursor.execute("select g.free_time from groups g, profiles p, users u where u.user_id={} and u.id=p.auth_id and p.group_id=g.id".format(self.user_id))
+    def get_tags(self, user_id):
+        self.cursor.execute("select p.tags from profiles p, users u where p.auth_id=u.id and u.user_id='{}'".format(user_id))
+        info = self.cursor.fetchone()[0]
+
+        return info.split(' • ')
+
+    def get_free_time(self, user_id):
+        self.cursor.execute("select g.free_time from groups g, profiles p, users u where u.user_id={} and u.id=p.auth_id and p.group_id=g.id".format(user_id))
+        info = self.cursor.fetchone()[0]
+        return info
+    
+    def get_schedule(self, user_id):
+        self.cursor.execute("select g.schedule from groups g, profiles p, users u where u.user_id={} and u.id=p.auth_id and p.group_id=g.id".format(user_id))
         info = self.cursor.fetchone()[0]
         return info
 
@@ -187,3 +179,17 @@ class AuthDb():
         users = self.cursor.fetchall()
 
         return [user[0] for user in users]
+
+    def set_matches(self, second_user_id, centre, radius, tags, free_time):
+        self.cursor.execute("insert into matches (user_id, second_user_id, centre, radius, tags, free_time) values (?, ?, ?, ?, ?, ?)", (self.user_id, second_user_id, centre, radius, tags, free_time))
+        self.conn.commit()
+
+    def get_joint_time(self, second_user_id):
+        self.cursor.execute("select free_time from matches where user_id = '{}' and second_user_id = '{}'".format(self.user_id, second_user_id))
+        info = self.cursor.fetchone()[0]
+        return info
+
+    def get_joint_tags(self, second_user_id):
+        self.cursor.execute("select tags from matches where user_id = '{}' and second_user_id = '{}'".format(self.user_id, second_user_id))
+        info = self.cursor.fetchone()[0]
+        return info.split(' • ')

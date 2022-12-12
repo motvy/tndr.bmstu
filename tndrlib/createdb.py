@@ -73,6 +73,19 @@ def create_db():
                             , info TEXT
                             , UNIQUE (faculty_name)				
                             )''')
+
+    cursor.execute('''CREATE TABLE matches (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT 								
+                            , user_id TEXT NOT NULL	
+                            , second_user_id TEXT NOT NULL	
+                            , centre TEXT
+                            , redius TEXT
+                            , tags TEXT
+                            , free_time TEXT
+                            , FOREIGN KEY (user_id) REFERENCES users (user_id)
+                            , FOREIGN KEY (second_user_id) REFERENCES users (user_id)
+                            )''')
+    
     
     set_schedule(conn, cursor)
 

@@ -18,7 +18,10 @@ async def error_handling(msg, err, lang, edit_flag=False):
 
 async def check_state(state):
     user_data = await state.get_data()
-    if 'profile_msg' in user_data:
+    if 'for_del_msg' in user_data:
+        current_msg = decode_fsm(user_data['for_del_msg'])
+        await current_msg.delete()
+    elif 'profile_msg' in user_data:
         caption = user_data['caption']
         profile_msg = decode_fsm(user_data['profile_msg'])
         await profile_msg.edit_caption(caption=caption, reply_markup=None, parse_mode='markdown')

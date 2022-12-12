@@ -18,6 +18,9 @@ MENU_KEYBOARD_RU = InlineKeyboardMarkup(
         [
             InlineKeyboardButton(text=mess.tr(2, 'show_profile_btn'), callback_data="show_profile_callback"),
         ],
+        [
+            InlineKeyboardButton(text=mess.tr(2, 'lang_btn'), callback_data="lang_callback"),
+        ],
     ]
 )
 
@@ -34,6 +37,9 @@ MENU_KEYBOARD_EN = InlineKeyboardMarkup(
         ],
         [
             InlineKeyboardButton(text=mess.tr(1, 'show_profile_btn'), callback_data="show_profile_callback"),
+        ],
+        [
+            InlineKeyboardButton(text=mess.tr(1, 'lang_btn'), callback_data="lang_callback"),
         ],
     ]
 )

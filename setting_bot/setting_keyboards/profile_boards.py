@@ -23,6 +23,9 @@ PROFILE_EDIT_KEYBOARD_RU = InlineKeyboardMarkup(
         [
             InlineKeyboardButton(text=mess.tr(2, 'view'), callback_data="view_callback")
         ],
+        [
+            InlineKeyboardButton(text=mess.tr(2, 'to_menu_btn'), callback_data="to_menu_callback"),
+        ],
     ]
 )
 
@@ -46,6 +49,9 @@ PROFILE_EDIT_KEYBOARD_EN = InlineKeyboardMarkup(
         ],
         [
             InlineKeyboardButton(text=mess.tr(1, 'view'), callback_data="view_callback")
+        ],
+        [
+            InlineKeyboardButton(text=mess.tr(1, 'to_menu_btn'), callback_data="to_menu_callback"),
         ],
     ]
 )
