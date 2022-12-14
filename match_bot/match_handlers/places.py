@@ -130,6 +130,8 @@ async def hide_callback(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(text="back_to_places_menu_callback")
 async def back_to_places_menu_callback(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await state.update_data(places=None)
 
     await places_callback(callback, state, split_flag=True)
 
@@ -230,7 +232,7 @@ async def set_date_of_birth(message, state: FSMContext):
         long = message.location.longitude
         lat = message.location.latitude
 
-        geo = f"{lat} {long}"
+        geo = f"{lat}, {long}"
         api.set_centre(geo)
 
         try:

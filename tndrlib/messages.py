@@ -100,8 +100,8 @@ The code should arrive within a minute - if it does not happen, try again with /
 Код должен прийти в течение минуты — если этого не произошло, попробуй ещё раз, выполнив команду /code''',
     },
     'valid_code': {
-        1: 'Your account has been verified!\nTo create profile use /profile command.',
-        2: 'Твой аккаунт подтвержден!\nДля создания профиля воспользуйся командой /profile',
+        1: 'Your account has been verified!\nUse /menu command.',
+        2: 'Твой аккаунт подтвержден!\nИспользуй команду /menu',
     },
     'invalid_code': {
         1: 'Code is invalid or expired. Try again with /code command',
@@ -418,8 +418,8 @@ Or enter corrcet vk link in https://vk.com/username format''',
         2: 'У меня нет страницы вк'
     },
     'not_full_profile': {
-        1: 'To start swapping, you need to fill out the profile completely with command /profile',
-        2: 'Чтобы начать свапать, необходимо полностью заполнить профиль при помощи команды /profile',
+        1: 'To start swapping, you need to fill out the profile completely',
+        2: 'Чтобы начать свапать, необходимо полностью заполнить профиль',
     },
     'go_swipe': {
         1: 'Use button to go to the main application.\n\nP.S. ou can always come back to set up your profile',

@@ -4,6 +4,7 @@ from . import authapi
 from . import tndriter
 
 from tndrlib import messages as mess
+from tndrlib import common as log
 import config
 
 import requests as req
@@ -66,7 +67,7 @@ class MeetApi(authapi.UserApi):
                 raise Exception("Not full places info")
         
         tags = info['tags'].split(' • ')
-        coord = info['centre'].split()
+        coord = info['centre'].split(', ')
 
         places_list = []
         for tag in tags:
@@ -76,9 +77,8 @@ class MeetApi(authapi.UserApi):
                 for place in res['result']['items']:
                     places_list.append((f"по тегу {tag}:\n\n" + ut.format_place(place), config.two_gis_link.format(place['id'], coord[1], coord[0])))
             else:
+                log.log_info(res['meta'])
                 continue
-        
-        print(*places_list, sep="\n")
         
         return tndriter.MyIter(places_list)
 

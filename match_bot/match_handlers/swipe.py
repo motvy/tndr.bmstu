@@ -228,24 +228,6 @@ async def show_fans_callback(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(text="show_match_callback")
 async def show_match_callback(callback: types.CallbackQuery, state: FSMContext):
-    # lang = setting_ut.default_lang(callback.message)
-    # try:
-    #     await callback.answer()
-    #     await match_ut.check_state(state)
-
-    #     api = matchapi.MatchApi(callback.from_user.id, callback.from_user.first_name)
-    #     lang = api.lang()
-
-    #     matches = api.get_match()
-    #     print(next(matches))
-    #     print(next(matches))
-
-    #     current_msg = await callback.message.answer(mess.tr(lang, 'fuck_you'), reply_markup=swipe_boards.get_to_menu_keyboard(lang))
-
-    #     message_json = setting_ut.encode_fsm(current_msg)
-    #     await state.update_data(start_msg = message_json)
-    # except Exception as err:
-    #     await lib_ut.error_handling(callback.message, err, lang, utils_flag="m")
     await next_match(callback, state)
 
 @router.callback_query(text="show_profile_callback")

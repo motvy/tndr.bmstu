@@ -15,7 +15,7 @@ from aioredis import Redis
 from aiogram.fsm.storage.redis import RedisStorage
 
 import config
-from match_handlers import common, swipe, places
+from match_handlers import swipe, places
 
 
 # Запуск бота
@@ -27,8 +27,6 @@ async def main():
 
     log.log_info('Connect match log')
 
-    dp.include_router(common.router)
-    log.log_info('Load match common')
     dp.include_router(swipe.router)
     log.log_info('Load match swipe')
     dp.include_router(places.router)

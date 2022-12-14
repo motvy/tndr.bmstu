@@ -17,18 +17,21 @@ async def error_handling(msg, err, lang, edit_flag=False):
         await msg.answer(text, parse_mode='markdown', disable_web_page_preview=True)
 
 async def check_state(state):
-    user_data = await state.get_data()
-    if 'for_del_msg' in user_data:
-        current_msg = decode_fsm(user_data['for_del_msg'])
-        await current_msg.delete()
-    elif 'profile_msg' in user_data:
-        caption = user_data['caption']
-        profile_msg = decode_fsm(user_data['profile_msg'])
-        await profile_msg.edit_caption(caption=caption, reply_markup=None, parse_mode='markdown')
-    if 'current_msg' in user_data:
-        current_msg = decode_fsm(user_data['current_msg']['msg'])
-        await current_msg.delete()
-    await state.clear()
+    try:
+        user_data = await state.get_data()
+        if 'for_del_msg' in user_data:
+            current_msg = decode_fsm(user_data['for_del_msg'])
+            await current_msg.delete()
+        elif 'profile_msg' in user_data:
+            caption = user_data['caption']
+            profile_msg = decode_fsm(user_data['profile_msg'])
+            await profile_msg.edit_caption(caption=caption, reply_markup=None, parse_mode='markdown')
+        if 'current_msg' in user_data:
+            current_msg = decode_fsm(user_data['current_msg']['msg'])
+            await current_msg.delete()
+        await state.clear()
+    except Exception as err:
+        await state.clear()
 
 def default_lang(msg):
     return 2
